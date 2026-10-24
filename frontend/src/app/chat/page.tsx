@@ -1,0 +1,211 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { MessageSquare, Send, CheckCheck, Clock } from "lucide-react";
+import { ConversationItem, ChatMessage } from "@/types";
+import { Button } from "@/components/ui/Button";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { apiClient } from "@/lib/api";
+
+export default function ChatPage() {
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [activeConv, setActiveConv] = useState<ConversationItem | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [newText, setNewText] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    async function loadConversations() {
+      try {
+        const data = await apiClient<ConversationItem[]>("/chat/conversations");
+        setConversations(data);
+        if (data.length > 0) {
+          setActiveConv(data[0]);
+        }
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadConversations();
+  }, []);
+
+  useEffect(() => {
+    async function loadMessages() {
+      if (!activeConv) return;
+      try {
+        const msgs = await apiClient<ChatMessage[]>(`/chat/conversations/${activeConv.id}/messages`);
+        setMessages(msgs);
+      } catch (err: any) {
+        console.error(err);
+      }
+    }
+    loadMessages();
+  }, [activeConv]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeConv || !newText.trim()) return;
+
+    setSending(true);
+    try {
+      const sentMsg = await apiClient<ChatMessage>(`/chat/conversations/${activeConv.id}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ content: newText }),
+      });
+      setMessages((prev) => [...prev, sentMsg]);
+      setNewText("");
+    } catch (err: any) {
+      alert(err.message || "Failed to send message.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading) return <LoadingSpinner text="Connecting to secure messaging channel…" />;
+
+  if (conversations.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4">
+        <EmptyState
+          title="No Active Conversations"
+          description="Once you or another member accepts an Express Interest, your private 1-on-1 chat room will appear here."
+          actionText="View Received Interests"
+          actionHref="/inbox"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[650px]">
+        {/* Left Column: Conversation Thread List */}
+        <div className="md:col-span-4 border-r border-gray-100 flex flex-col">
+          <div className="p-4 border-b border-gray-100 bg-rose-50/30">
+            <h2 className="font-bold text-gray-900 font-serif flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-brand-600" />
+              Connected Chats ({conversations.length})
+            </h2>
+          </div>
+          <div className="divide-y divide-gray-50 flex-1 overflow-y-auto">
+            {conversations.map((c) => {
+              const p = c.partner_profile;
+              const isActive = activeConv?.id === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setActiveConv(c)}
+                  className={`w-full text-left p-4 flex items-center gap-3 transition-colors ${
+                    isActive ? "bg-rose-50/80 border-l-4 border-brand-600" : "hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-rose-200 flex items-center justify-center font-serif font-bold text-brand-800 text-base shrink-0">
+                    {p ? p.first_name[0] : "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <span className="font-bold text-sm text-gray-900 truncate">
+                        {p ? `${p.first_name} ${p.last_initial}` : "Match"}
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {p?.profile_id_display}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 truncate">
+                      {c.last_message ? c.last_message.content : "Tap to open chat..."}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Column: Active Chat Thread Window */}
+        <div className="md:col-span-8 flex flex-col justify-between bg-slate-50/40">
+          {activeConv ? (
+            <>
+              {/* Active Header */}
+              <div className="p-4 border-b border-gray-100 bg-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center font-serif font-bold text-brand-800 text-sm">
+                    {activeConv.partner_profile?.first_name[0]}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-gray-900">
+                      {activeConv.partner_profile?.first_name} {activeConv.partner_profile?.last_initial}
+                    </h3>
+                    <p className="text-[11px] text-gray-500">
+                      {activeConv.partner_profile?.occupation} in {activeConv.partner_profile?.residence_city}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-medium">
+                  Connected Connection
+                </div>
+              </div>
+
+              {/* Chat Messages Stream */}
+              <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto">
+                <div className="text-center my-4">
+                  <span className="bg-white border border-gray-200 text-gray-500 text-[11px] px-3 py-1 rounded-full shadow-2xs">
+                    Messages are encrypted in transit. Please observe matrimonial decorum.
+                  </span>
+                </div>
+
+                {messages.map((m) => {
+                  const isOwn = m.sender_id !== activeConv.partner_profile?.user_id;
+                  return (
+                    <div
+                      key={m.id}
+                      className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
+                    >
+                      <div
+                        className={`max-w-md px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-2xs ${
+                          isOwn
+                            ? "bg-brand-600 text-white rounded-br-xs"
+                            : "bg-white text-gray-800 border border-gray-100 rounded-bl-xs"
+                        }`}
+                      >
+                        {m.content}
+                      </div>
+                      <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-400">
+                        <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                        {isOwn && (
+                          <CheckCheck className={`w-3.5 h-3.5 ${m.status === "READ" ? "text-blue-500" : "text-gray-400"}`} />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Message Input Form */}
+              <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-100 flex items-center gap-2">
+                <input
+                  type="text"
+                  required
+                  placeholder="Type a respectful message…"
+                  value={newText}
+                  onChange={(e) => setNewText(e.target.value)}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                />
+                <Button type="submit" variant="primary" size="md" isLoading={sending}>
+                  <Send className="w-4 h-4 mr-1" /> Send
+                </Button>
+              </form>
+            </>
+          ) : (
+            <div className="flex items-center justify-center flex-1 text-gray-400 text-sm">
+              Select a conversation to start messaging.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

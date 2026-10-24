@@ -1,0 +1,83 @@
+"""
+Analogy: The deps module is like the security checkpoint and badge scanner at the entrance of a private facility.
+Before any request reaches an API room, deps scans the guest's digital token, ensures their account is in good standing,
+and confirms whether they hold Member, Moderator, or Admin clearances.
+"""
+
+import uuid
+from typing import AsyncGenerator, Callable, List, Optional
+from fastapi import Cookie, Depends, Header, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.app.core.database import get_db
+from backend.app.core.security import decode_token
+from backend.app.models.user import User, UserRole, UserStatus
+
+
+async def get_token_from_header_or_cookie(
+    authorization: Optional[str] = Header(None),
+    access_token: Optional[str] = Cookie(None)
+) -> str:
+    """Extracts the Bearer token from the Authorization header or HttpOnly access_token cookie."""
+    if authorization and authorization.startswith("Bearer "):
+        return authorization.split(" ")[1]
+    if access_token:
+        return access_token
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required. Please provide a valid session token.",
+        headers={"WWW-Authenticate": "Bearer"}
+    )
+
+
+async def get_current_user(
+    token: str = Depends(get_token_from_header_or_cookie),
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    """Decodes the JWT token and fetches the current active user from the database."""
+    try:
+        payload = decode_token(token)
+        user_id_str: str = payload.get("sub")
+        if not user_id_str:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject.")
+        user_uuid = uuid.UUID(user_id_str)
+    except (ValueError, KeyError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired or invalid token.")
+
+    query = select(User).where(User.id == user_uuid)
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User account no longer exists.")
+    if user.status in [UserStatus.SUSPENDED, UserStatus.BANNED]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Account access restricted: Status is {user.status.value}. Please contact support."
+        )
+
+    return user
+
+
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """Ensures the user account is in ACTIVE status."""
+    if current_user.status == UserStatus.PENDING_VERIFICATION:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account pending verification. Please verify your phone OTP to proceed."
+        )
+    return current_user
+
+
+def require_roles(*allowed_roles: UserRole) -> Callable:
+    """Higher-order dependency enforcing strict role boundaries."""
+    async def role_checker(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Forbidden: Action requires one of {[r.value for r in allowed_roles]}."
+            )
+        return current_user
+    return role_checker
