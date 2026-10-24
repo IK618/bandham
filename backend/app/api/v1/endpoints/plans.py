@@ -68,7 +68,7 @@ async def get_my_active_subscription(
         )
         .order_by(Subscription.expires_at.desc())
     )
-    sub = (await db.execute(query)).scalar_one_or_none()
+    sub = (await db.execute(query)).scalars().first()
 
     if not sub:
         # Default Free tier representation
@@ -82,7 +82,17 @@ async def get_my_active_subscription(
             contact_credits_remaining=0
         )
 
-    plan = (await db.execute(select(Plan).where(Plan.id == sub.plan_id))).scalar_one()
+    plan = (await db.execute(select(Plan).where(Plan.id == sub.plan_id))).scalars().first()
+    if not plan:
+        return SubscriptionResponse(
+            id="free-tier",
+            plan_id="free-plan",
+            plan_name="FREE",
+            status=SubscriptionStatusEnum.ACTIVE,
+            starts_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=365),
+            contact_credits_remaining=0
+        )
 
     return SubscriptionResponse(
         id=str(sub.id),
@@ -103,12 +113,22 @@ async def mock_checkout(
 ):
     """Simulates payment gateway checkout (Stripe/Razorpay stub) and activates subscription pass."""
     plan_uuid = uuid.UUID(payload.plan_id)
-    plan = (await db.execute(select(Plan).where(Plan.id == plan_uuid))).scalar_one_or_none()
+    plan = (await db.execute(select(Plan).where(Plan.id == plan_uuid))).scalars().first()
     if not plan:
         raise HTTPException(status_code=404, detail="Selected plan does not exist.")
 
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(days=plan.duration_months * 30)
+
+    # Supersede older active subscriptions
+    existing_subs = (await db.execute(
+        select(Subscription).where(
+            Subscription.user_id == current_user.id,
+            Subscription.status == SubscriptionStatusEnum.ACTIVE
+        )
+    )).scalars().all()
+    for old_sub in existing_subs:
+        old_sub.status = SubscriptionStatusEnum.EXPIRED
 
     # Create Subscription
     sub = Subscription(

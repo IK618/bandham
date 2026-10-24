@@ -41,7 +41,7 @@ async def get_my_profile(
 ):
     """Retrieves the authenticated user's own profile."""
     query = select(Profile).where(Profile.user_id == current_user.id)
-    profile = (await db.execute(query)).scalar_one_or_none()
+    profile = (await db.execute(query)).scalars().first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found. Please complete onboarding.")
 
@@ -103,7 +103,7 @@ async def update_my_profile(
 ):
     """Updates fields on the authenticated user's profile and recalculates completeness score."""
     query = select(Profile).where(Profile.user_id == current_user.id)
-    profile = (await db.execute(query)).scalar_one_or_none()
+    profile = (await db.execute(query)).scalars().first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found.")
 
@@ -140,7 +140,7 @@ async def get_profile_by_id(
     except ValueError:
         query = select(Profile).where(Profile.profile_id_display == profile_id)
 
-    profile = (await db.execute(query)).scalar_one_or_none()
+    profile = (await db.execute(query)).scalars().first()
     if not profile:
         raise HTTPException(status_code=404, detail="Candidate profile not found.")
 
@@ -153,7 +153,7 @@ async def get_profile_by_id(
             )
         )
     )
-    if block_check.scalar_one_or_none():
+    if block_check.scalars().first():
         raise HTTPException(status_code=404, detail="Profile unavailable.")
 
     # Fetch Photos
@@ -168,11 +168,11 @@ async def get_profile_by_id(
             ContactView.target_user_id == profile.user_id
         )
     )
-    has_contact_revealed = cv_check.scalar_one_or_none() is not None
+    has_contact_revealed = cv_check.scalars().first() is not None
 
     # Calculate Compatibility Score
     pref_query = select(PartnerPreference).where(PartnerPreference.user_id == current_user.id)
-    my_pref = (await db.execute(pref_query)).scalar_one_or_none()
+    my_pref = (await db.execute(pref_query)).scalars().first()
     comp_score = None
     if my_pref:
         comp_score, _ = MatchingService.calculate_compatibility(my_pref, profile)
@@ -269,7 +269,7 @@ async def search_profiles(
 
     # User's preferences for calculating match scores
     pref_query = select(PartnerPreference).where(PartnerPreference.user_id == current_user.id)
-    my_pref = (await db.execute(pref_query)).scalar_one_or_none()
+    my_pref = (await db.execute(pref_query)).scalars().first()
 
     results: List[ProfilePublicCard] = []
     for p in profiles:

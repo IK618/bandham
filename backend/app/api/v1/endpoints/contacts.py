@@ -33,24 +33,24 @@ async def reveal_contact_details(
     if target_uuid == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot reveal your own contact details.")
 
-    target_user = (await db.execute(select(User).where(User.id == target_uuid))).scalar_one_or_none()
+    target_user = (await db.execute(select(User).where(User.id == target_uuid))).scalars().first()
     if not target_user:
         raise HTTPException(status_code=404, detail="Target user not found.")
 
     # 1. Check if contact has already been revealed in current cycle
-    existing_view = await db.execute(
+    existing_view = (await db.execute(
         select(ContactView).where(
             ContactView.viewer_id == current_user.id,
             ContactView.target_user_id == target_uuid
         )
-    )
-    if existing_view.scalar_one_or_none():
+    )).scalars().first()
+    if existing_view:
         # Already revealed: Return without deducting additional credits
         sub_query = select(Subscription).where(
             Subscription.user_id == current_user.id,
             Subscription.status == SubscriptionStatusEnum.ACTIVE
-        )
-        sub = (await db.execute(sub_query)).scalar_one_or_none()
+        ).order_by(Subscription.expires_at.desc())
+        sub = (await db.execute(sub_query)).scalars().first()
         credits_rem = sub.contact_credits_remaining if sub else 0
         return ContactRevealResponse(
             target_user_id=str(target_user.id),
@@ -68,8 +68,8 @@ async def reveal_contact_details(
             Subscription.expires_at > datetime.now(timezone.utc),
             Subscription.contact_credits_remaining > 0
         )
-    )
-    active_sub = (await db.execute(sub_query)).scalar_one_or_none()
+    ).order_by(Subscription.expires_at.desc())
+    active_sub = (await db.execute(sub_query)).scalars().first()
     if not active_sub:
         raise HTTPException(
             status_code=403,
@@ -89,7 +89,7 @@ async def reveal_contact_details(
     db.add(contact_view)
 
     # 5. Alert Target User
-    viewer_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalar_one_or_none()
+    viewer_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
     viewer_name = viewer_prof.first_name if viewer_prof else "A member"
     db.add(Notification(
         user_id=target_uuid,

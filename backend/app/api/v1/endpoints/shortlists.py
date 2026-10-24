@@ -31,7 +31,7 @@ async def get_my_shortlist(
 
     responses: List[ShortlistResponse] = []
     for it in items:
-        prof = (await db.execute(select(Profile).where(Profile.user_id == it.shortlisted_user_id))).scalar_one_or_none()
+        prof = (await db.execute(select(Profile).where(Profile.user_id == it.shortlisted_user_id))).scalars().first()
         responses.append(
             ShortlistResponse(
                 id=str(it.id),
@@ -62,7 +62,7 @@ async def add_to_shortlist(
             Shortlist.shortlisted_user_id == target_uuid
         )
     )
-    if existing.scalar_one_or_none():
+    if existing.scalars().first():
         raise HTTPException(status_code=400, detail="Profile already bookmarked in your shortlist.")
 
     item = Shortlist(
@@ -74,7 +74,7 @@ async def add_to_shortlist(
     await db.commit()
     await db.refresh(item)
 
-    prof = (await db.execute(select(Profile).where(Profile.user_id == target_uuid))).scalar_one_or_none()
+    prof = (await db.execute(select(Profile).where(Profile.user_id == target_uuid))).scalars().first()
     return ShortlistResponse(
         id=str(item.id),
         user_id=str(item.user_id),
@@ -97,7 +97,7 @@ async def remove_from_shortlist(
         Shortlist.user_id == current_user.id,
         Shortlist.shortlisted_user_id == target_uuid
     )
-    item = (await db.execute(query)).scalar_one_or_none()
+    item = (await db.execute(query)).scalars().first()
     if not item:
         raise HTTPException(status_code=404, detail="Shortlist bookmark not found.")
 

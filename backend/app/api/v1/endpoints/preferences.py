@@ -26,7 +26,7 @@ async def get_my_preferences(
 ):
     """Retrieves the authenticated user's partner preferences."""
     query = select(PartnerPreference).where(PartnerPreference.user_id == current_user.id)
-    pref = (await db.execute(query)).scalar_one_or_none()
+    pref = (await db.execute(query)).scalars().first()
     
     if not pref:
         # Create default empty preference
@@ -78,7 +78,7 @@ async def update_my_preferences(
 ):
     """Updates the authenticated user's partner expectation criteria."""
     query = select(PartnerPreference).where(PartnerPreference.user_id == current_user.id)
-    pref = (await db.execute(query)).scalar_one_or_none()
+    pref = (await db.execute(query)).scalars().first()
     
     if not pref:
         pref = PartnerPreference(user_id=current_user.id)

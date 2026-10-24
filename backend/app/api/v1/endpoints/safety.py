@@ -41,7 +41,7 @@ async def block_user(
             Block.blocked_user_id == target_uuid
         )
     )
-    if existing.scalar_one_or_none():
+    if existing.scalars().first():
         raise HTTPException(status_code=400, detail="User is already blocked.")
 
     block = Block(blocker_id=current_user.id, blocked_user_id=target_uuid)
@@ -70,7 +70,7 @@ async def unblock_user(
             Block.blocker_id == current_user.id,
             Block.blocked_user_id == target_uuid
         )
-    )).scalar_one_or_none()
+    )).scalars().first()
 
     if not block:
         raise HTTPException(status_code=404, detail="Block record not found.")
@@ -144,7 +144,7 @@ async def mark_notification_read(
     """Marks a notification as read."""
     n_uuid = uuid.UUID(notification_id)
     query = select(Notification).where(Notification.id == n_uuid, Notification.user_id == current_user.id)
-    notif = (await db.execute(query)).scalar_one_or_none()
+    notif = (await db.execute(query)).scalars().first()
     if not notif:
         raise HTTPException(status_code=404, detail="Notification not found.")
 

@@ -77,7 +77,7 @@ async def resolve_report(
 ):
     """Marks an incident report as resolved or dismissed."""
     r_uuid = uuid.UUID(report_id)
-    report = (await db.execute(select(Report).where(Report.id == r_uuid))).scalar_one_or_none()
+    report = (await db.execute(select(Report).where(Report.id == r_uuid))).scalars().first()
     if not report:
         raise HTTPException(status_code=404, detail="Incident report not found.")
 
@@ -97,7 +97,7 @@ async def suspend_user(
 ):
     """Suspends or reinstates a member account."""
     u_uuid = uuid.UUID(user_id)
-    user = (await db.execute(select(User).where(User.id == u_uuid))).scalar_one_or_none()
+    user = (await db.execute(select(User).where(User.id == u_uuid))).scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
 

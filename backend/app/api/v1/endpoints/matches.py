@@ -29,8 +29,8 @@ async def get_daily_matches(
 ):
     """Retrieves top curated recommendations scored against the user's partner preferences."""
     # Fetch user's own profile and preferences
-    my_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalar_one_or_none()
-    my_pref = (await db.execute(select(PartnerPreference).where(PartnerPreference.user_id == current_user.id))).scalar_one_or_none()
+    my_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
+    my_pref = (await db.execute(select(PartnerPreference).where(PartnerPreference.user_id == current_user.id))).scalars().first()
     
     if not my_pref or not my_prof:
         raise HTTPException(status_code=400, detail="Please complete your profile and partner preferences first.")
@@ -104,11 +104,11 @@ async def get_compatibility_breakdown(
     except ValueError:
         q = select(Profile).where(Profile.profile_id_display == target_id)
 
-    candidate = (await db.execute(q)).scalar_one_or_none()
+    candidate = (await db.execute(q)).scalars().first()
     if not candidate:
         raise HTTPException(status_code=404, detail="Candidate not found.")
 
-    my_pref = (await db.execute(select(PartnerPreference).where(PartnerPreference.user_id == current_user.id))).scalar_one_or_none()
+    my_pref = (await db.execute(select(PartnerPreference).where(PartnerPreference.user_id == current_user.id))).scalars().first()
     if not my_pref:
         raise HTTPException(status_code=400, detail="Partner preferences not configured.")
 

@@ -46,7 +46,7 @@ async def get_current_user(
 
     query = select(User).where(User.id == user_uuid)
     result = await db.execute(query)
-    user = result.scalar_one_or_none()
+    user = result.scalars().first()
 
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User account no longer exists.")

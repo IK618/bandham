@@ -25,8 +25,8 @@ async def export_my_data(
     db: AsyncSession = Depends(get_db)
 ):
     """Generates a complete, downloadable JSON archive of all personal data held by the platform."""
-    prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalar_one_or_none()
-    pref = (await db.execute(select(PartnerPreference).where(PartnerPreference.user_id == current_user.id))).scalar_one_or_none()
+    prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
+    pref = (await db.execute(select(PartnerPreference).where(PartnerPreference.user_id == current_user.id))).scalars().first()
     interests_sent = (await db.execute(select(Interest).where(Interest.sender_id == current_user.id))).scalars().all()
     shortlists = (await db.execute(select(Shortlist).where(Shortlist.user_id == current_user.id))).scalars().all()
     subs = (await db.execute(select(Subscription).where(Subscription.user_id == current_user.id))).scalars().all()

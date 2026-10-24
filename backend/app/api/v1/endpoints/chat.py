@@ -42,11 +42,11 @@ async def get_my_conversations(
             ConversationParticipant.conversation_id == conv.id,
             ConversationParticipant.user_id != current_user.id
         )
-        partner_part = (await db.execute(p_query)).scalar_one_or_none()
+        partner_part = (await db.execute(p_query)).scalars().first()
         partner_prof = None
         if partner_part:
             prof_q = select(Profile).where(Profile.user_id == partner_part.user_id)
-            partner_prof = (await db.execute(prof_q)).scalar_one_or_none()
+            partner_prof = (await db.execute(prof_q)).scalars().first()
 
         # Last message
         last_msg_q = (
@@ -55,7 +55,7 @@ async def get_my_conversations(
             .order_by(Message.created_at.desc())
             .limit(1)
         )
-        last_msg = (await db.execute(last_msg_q)).scalar_one_or_none()
+        last_msg = (await db.execute(last_msg_q)).scalars().first()
 
         responses.append(
             ConversationResponse(
@@ -94,7 +94,7 @@ async def get_messages(
             ConversationParticipant.user_id == current_user.id
         )
     )
-    if not membership.scalar_one_or_none():
+    if not membership.scalars().first():
         raise HTTPException(status_code=403, detail="Unauthorized: You are not a participant in this conversation.")
 
     query = (
@@ -141,7 +141,7 @@ async def send_message(
             ConversationParticipant.user_id == current_user.id
         )
     )
-    if not membership.scalar_one_or_none():
+    if not membership.scalars().first():
         raise HTTPException(status_code=403, detail="Unauthorized: You are not a participant in this conversation.")
 
     msg = Message(
@@ -153,8 +153,9 @@ async def send_message(
     db.add(msg)
 
     # Update conversation updated_at
-    conv = (await db.execute(select(Conversation).where(Conversation.id == conv_uuid))).scalar_one()
-    conv.updated_at = datetime.now(timezone.utc)
+    conv = (await db.execute(select(Conversation).where(Conversation.id == conv_uuid))).scalars().first()
+    if conv:
+        conv.updated_at = datetime.now(timezone.utc)
 
     await db.commit()
     await db.refresh(msg)

@@ -33,7 +33,7 @@ async def register_user(
     """Registers a new account and initiates phone OTP verification."""
     # Check duplicate email or phone
     query = select(User).where(or_(User.email == payload.email, User.phone_number == payload.phone_number))
-    existing = (await db.execute(query)).scalar_one_or_none()
+    existing = (await db.execute(query)).scalars().first()
     if existing:
         if existing.email == payload.email:
             raise HTTPException(status_code=400, detail="An account with this email address already exists.")
@@ -101,7 +101,7 @@ async def verify_otp(
 ):
     """Verifies phone OTP, activates account, and sets session cookies."""
     query = select(User).where(User.phone_number == payload.phone_number)
-    user = (await db.execute(query)).scalar_one_or_none()
+    user = (await db.execute(query)).scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="Phone number not registered.")
 
@@ -135,7 +135,7 @@ async def verify_otp(
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
     )
 
-    prof = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalar_one_or_none()
+    prof = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalars().first()
 
     return TokenResponse(
         access_token=access_token,
@@ -155,7 +155,7 @@ async def login(
 ):
     """Authenticates using email or phone number and issues JWT cookies."""
     query = select(User).where(or_(User.email == payload.email_or_phone, User.phone_number == payload.email_or_phone))
-    user = (await db.execute(query)).scalar_one_or_none()
+    user = (await db.execute(query)).scalars().first()
     
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid login credentials.")
@@ -186,7 +186,7 @@ async def login(
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
     )
 
-    prof = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalar_one_or_none()
+    prof = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalars().first()
 
     return TokenResponse(
         access_token=access_token,

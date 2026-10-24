@@ -77,7 +77,7 @@ async def send_interest(
             Interest.recipient_id == recipient_uuid
         )
     )
-    if existing.scalar_one_or_none():
+    if existing.scalars().first():
         raise HTTPException(status_code=400, detail="You have already expressed interest in this profile.")
 
     interest = Interest(
@@ -89,7 +89,7 @@ async def send_interest(
     db.add(interest)
 
     # Send Notification to Recipient
-    sender_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalar_one_or_none()
+    sender_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
     sender_name = sender_prof.first_name if sender_prof else "A member"
     db.add(Notification(
         user_id=recipient_uuid,
@@ -123,7 +123,7 @@ async def get_received_interests(
 
     responses: List[InterestResponse] = []
     for it in interests:
-        s_prof = (await db.execute(select(Profile).where(Profile.user_id == it.sender_id))).scalar_one_or_none()
+        s_prof = (await db.execute(select(Profile).where(Profile.user_id == it.sender_id))).scalars().first()
         responses.append(
             InterestResponse(
                 id=str(it.id),
@@ -149,7 +149,7 @@ async def get_sent_interests(
 
     responses: List[InterestResponse] = []
     for it in interests:
-        r_prof = (await db.execute(select(Profile).where(Profile.user_id == it.recipient_id))).scalar_one_or_none()
+        r_prof = (await db.execute(select(Profile).where(Profile.user_id == it.recipient_id))).scalars().first()
         responses.append(
             InterestResponse(
                 id=str(it.id),
@@ -172,7 +172,7 @@ async def accept_interest(
 ):
     """Accepts an incoming interest and unlocks 1-on-1 private messaging."""
     interest_uuid = uuid.UUID(interest_id)
-    interest = (await db.execute(select(Interest).where(Interest.id == interest_uuid))).scalar_one_or_none()
+    interest = (await db.execute(select(Interest).where(Interest.id == interest_uuid))).scalars().first()
 
     if not interest or interest.recipient_id != current_user.id:
         raise HTTPException(status_code=404, detail="Interest invitation not found.")
@@ -187,7 +187,7 @@ async def accept_interest(
         .group_by(Conversation.id)
         .having(func.count(ConversationParticipant.user_id) == 2)
     )
-    conv = conv_check.scalar_one_or_none()
+    conv = conv_check.scalars().first()
     if not conv:
         conv = Conversation()
         db.add(conv)
@@ -203,7 +203,7 @@ async def accept_interest(
         ))
 
     # Notify Sender
-    recip_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalar_one_or_none()
+    recip_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
     recip_name = recip_prof.first_name if recip_prof else "Your match"
     db.add(Notification(
         user_id=interest.sender_id,
@@ -234,7 +234,7 @@ async def decline_interest(
 ):
     """Declines an incoming interest quietly."""
     interest_uuid = uuid.UUID(interest_id)
-    interest = (await db.execute(select(Interest).where(Interest.id == interest_uuid))).scalar_one_or_none()
+    interest = (await db.execute(select(Interest).where(Interest.id == interest_uuid))).scalars().first()
 
     if not interest or interest.recipient_id != current_user.id:
         raise HTTPException(status_code=404, detail="Interest invitation not found.")
