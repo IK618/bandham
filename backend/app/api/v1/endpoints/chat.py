@@ -5,6 +5,7 @@ and dispatches real-time text between mutually accepted matrimonial connections.
 """
 
 import uuid
+from datetime import datetime, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
@@ -153,7 +154,7 @@ async def send_message(
 
     # Update conversation updated_at
     conv = (await db.execute(select(Conversation).where(Conversation.id == conv_uuid))).scalar_one()
-    conv.updated_at = msg.created_at
+    conv.updated_at = datetime.now(timezone.utc)
 
     await db.commit()
     await db.refresh(msg)

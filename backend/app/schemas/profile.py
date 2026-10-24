@@ -136,6 +136,7 @@ class ProfileDetailResponse(ProfileBase):
     user_id: str
     profile_id_display: str
     age: int
+    last_initial: Optional[str] = None
     profile_completeness_pct: int
     is_searchable: bool
     photo_urls: List[str] = []

@@ -7,7 +7,7 @@ manages incoming/outgoing invitation queues, and handles mutual acceptance hands
 import uuid
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db

@@ -104,12 +104,12 @@ export default function ChatPage() {
                   }`}
                 >
                   <div className="w-12 h-12 rounded-full bg-rose-200 flex items-center justify-center font-serif font-bold text-brand-800 text-base shrink-0">
-                    {p ? p.first_name[0] : "?"}
+                    {p ? (p.first_name?.[0] || "?") : "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center mb-0.5">
                       <span className="font-bold text-sm text-gray-900 truncate">
-                        {p ? `${p.first_name} ${p.last_initial}` : "Match"}
+                        {p ? `${p.first_name} ${p.last_initial || p.last_name || ""}` : "Match"}
                       </span>
                       <span className="text-[10px] text-gray-400 font-mono">
                         {p?.profile_id_display}
@@ -133,11 +133,11 @@ export default function ChatPage() {
               <div className="p-4 border-b border-gray-100 bg-white flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center font-serif font-bold text-brand-800 text-sm">
-                    {activeConv.partner_profile?.first_name[0]}
+                    {activeConv.partner_profile?.first_name?.[0] || "?"}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-gray-900">
-                      {activeConv.partner_profile?.first_name} {activeConv.partner_profile?.last_initial}
+                      {activeConv.partner_profile?.first_name} {activeConv.partner_profile?.last_initial || activeConv.partner_profile?.last_name || ""}
                     </h3>
                     <p className="text-[11px] text-gray-500">
                       {activeConv.partner_profile?.occupation} in {activeConv.partner_profile?.residence_city}

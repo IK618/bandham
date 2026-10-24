@@ -60,7 +60,7 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
       <div className="relative h-64 bg-gradient-to-tr from-rose-100 via-rose-50 to-amber-50 flex items-center justify-center overflow-hidden">
         {/* Placeholder Portrait Silhouette / Watermarked Display */}
         <div className={`w-32 h-32 rounded-full border-4 border-white shadow-lg bg-gradient-to-b from-brand-200 to-rose-300 flex items-center justify-center text-brand-800 font-serif text-3xl font-bold select-none ${profile.is_photo_blurred ? "blur-md" : ""}`}>
-          {profile.first_name[0]}{profile.last_initial[0]}
+          {(profile.first_name?.[0] || "") + (profile.last_initial?.[0] || profile.last_name?.[0] || "")}
         </div>
 
         {/* Dynamic Watermark Stamp Overlay */}
@@ -97,7 +97,7 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
         <div>
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-lg font-bold text-gray-900 font-serif">
-              {profile.first_name} {profile.last_initial}
+              {profile.first_name} {profile.last_initial || profile.last_name || ""}
             </h3>
             <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
               <ShieldCheck className="w-3.5 h-3.5" />

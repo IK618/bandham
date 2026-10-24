@@ -114,12 +114,12 @@ export default function InboxPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center font-serif font-bold text-brand-800 text-lg shrink-0">
-                    {card ? card.first_name[0] : "?"}
+                    {card ? (card.first_name?.[0] || "?") : "?"}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-gray-900 font-serif">
-                        {card ? `${card.first_name} ${card.last_initial}` : "Member Profile"}
+                        {card ? `${card.first_name} ${card.last_initial || card.last_name || ""}` : "Member Profile"}
                       </h3>
                       <Badge variant={item.status === "ACCEPTED" ? "success" : item.status === "PENDING" ? "brand" : "neutral"}>
                         {item.status}

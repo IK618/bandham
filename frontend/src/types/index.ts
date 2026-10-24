@@ -10,7 +10,8 @@ export interface ProfileCard {
   user_id: string;
   profile_id_display: string;
   first_name: string;
-  last_initial: string;
+  last_name?: string;
+  last_initial?: string;
   gender: Gender;
   age: number;
   height_cm: number;
