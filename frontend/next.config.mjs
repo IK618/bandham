@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const backendUrl = (process.env.BACKEND_URL || "http://backend:8000").replace(/\/+$/, "");
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -14,7 +16,6 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || "http://backend:8000";
     return [
       {
         source: "/api/v1/:path*",

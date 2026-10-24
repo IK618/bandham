@@ -117,21 +117,21 @@ async def verify_otp(
     access_token = create_access_token(subject=str(user.id), role=user.role.value)
     refresh_token = create_refresh_token(subject=str(user.id))
 
-    # Set HttpOnly, SameSite=Lax cookies
+    # Set HttpOnly cookies
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="lax",
-        secure=(settings.ENVIRONMENT == "production"),
+        samesite=settings.COOKIE_SAMESITE,
+        secure=settings.IS_COOKIE_SECURE,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        samesite="lax",
-        secure=(settings.ENVIRONMENT == "production"),
+        samesite=settings.COOKIE_SAMESITE,
+        secure=settings.IS_COOKIE_SECURE,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
     )
 
@@ -173,16 +173,16 @@ async def login(
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="lax",
-        secure=(settings.ENVIRONMENT == "production"),
+        samesite=settings.COOKIE_SAMESITE,
+        secure=settings.IS_COOKIE_SECURE,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        samesite="lax",
-        secure=(settings.ENVIRONMENT == "production"),
+        samesite=settings.COOKIE_SAMESITE,
+        secure=settings.IS_COOKIE_SECURE,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
     )
 
