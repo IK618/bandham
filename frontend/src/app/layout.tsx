@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Bandhan Matrimonial Platform | Sacred & Verified Marriages",
+  title: "Bandham Matrimonial Platform | Sacred & Verified Marriages",
   description: "An authentic, privacy-first matrimonial community designed for meaningful marriages. 100% verified profiles, complete data protection, and intelligent compatibility matching.",
 };
 

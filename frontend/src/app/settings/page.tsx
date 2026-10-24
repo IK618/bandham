@@ -17,7 +17,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `bandhan_my_data_${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `bandham_my_data_${new Date().toISOString().split("T")[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (err: any) {
@@ -29,7 +29,7 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     const confirmed = confirm(
-      "Are you absolutely sure you want to permanently delete your Bandhan account? All your personal profile data, photos, and conversation history will be irreversibly erased."
+      "Are you absolutely sure you want to permanently delete your Bandham account? All your personal profile data, photos, and conversation history will be irreversibly erased."
     );
     if (!confirmed) return;
 

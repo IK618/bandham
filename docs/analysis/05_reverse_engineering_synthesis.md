@@ -1,6 +1,6 @@
-# REA Reverse-Engineering Synthesis & Architectural Blueprint: Bandhan Platform
+# REA Reverse-Engineering Synthesis & Architectural Blueprint: Bandham Platform
 
-> **REA Skill Execution Record**: This synthesis codifies the structural, operational, and privacy findings into a clean-room architectural foundation for **Bandhan** (`<APP_NAME>`), our original matrimonial web application.
+> **REA Skill Execution Record**: This synthesis codifies the structural, operational, and privacy findings into a clean-room architectural foundation for **Bandham** (`<APP_NAME>`), our original matrimonial web application.
 
 ---
 
@@ -15,9 +15,9 @@ Matrimonial platforms represent a unique category of social software that sits a
 
 ---
 
-## 2. Comparative Matrix: Reference Benchmark vs. Original Bandhan System
+## 2. Comparative Matrix: Reference Benchmark vs. Original Bandham System
 
-| Architectural Dimension | Reference Paradigm (Legacy Public Benchmark) | Bandhan Clean-Room Architecture (`<APP_NAME>`) |
+| Architectural Dimension | Reference Paradigm (Legacy Public Benchmark) | Bandham Clean-Room Architecture (`<APP_NAME>`) |
 | :--- | :--- | :--- |
 | **Authentication & Session** | Legacy session cookies, SMS aggregator credentials | Modern Stateless JWT Auth (Access + Refresh tokens stored in HttpOnly, SameSite=Strict, Secure cookies) + Pluggable OTP Provider stub |
 | **Frontend Stack** | Monolithic SSR / mixed legacy client scripts | Next.js 15 (App Router, React 19, TypeScript, Tailwind CSS, TanStack Query, React Hook Form + Zod) |

@@ -1,4 +1,4 @@
-# Bandhan Matrimonial Platform: Operations & Deployment Guide
+# Bandham Matrimonial Platform: Operations & Deployment Guide
 
 > **Production Engineering Handbook**: This manual covers local development startup, Docker Compose orchestration, database migrations, 500+ profile seeding, testing procedures, and cloud production deployment.
 
@@ -44,9 +44,9 @@ PYTHONPATH=. python backend/scripts/seed_database.py
 ```
 This generates:
 - **Default Membership Plans**: `FREE`, `GOLD`, `PLATINUM`, `DIAMOND`.
-- **Admin User**: `admin@bandhan.local` / `Admin@12345`
-- **Moderator User**: `moderator@bandhan.local` / `Moderator@12345`
-- **Primary Demo Candidate**: `ananya@bandhan.local` / `Ananya@12345` (Complete profile, Gold pass, sample incoming interests & chats).
+- **Admin User**: `admin@bandham.local` / `Admin@12345`
+- **Moderator User**: `moderator@bandham.local` / `Moderator@12345`
+- **Primary Demo Candidate**: `ananya@bandham.local` / `Ananya@12345` (Complete profile, Gold pass, sample incoming interests & chats).
 - **520+ Diverse Profiles**: Multi-cultural demographic spread across major Indian communities, occupations, and cities.
 
 ---

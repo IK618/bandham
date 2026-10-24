@@ -10,13 +10,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Bandhan Matrimonial Platform"
+    PROJECT_NAME: str = "Bandham Matrimonial Platform"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"
 
     # Security & Tokens
-    SECRET_KEY: str = "bandhan_development_ultra_secure_secret_key_change_in_prod_1234567890"
+    SECRET_KEY: str = "bandham_development_ultra_secure_secret_key_change_in_prod_1234567890"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours for dev; 15 mins in prod
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     ALGORITHM: str = "HS256"

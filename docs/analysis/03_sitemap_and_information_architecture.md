@@ -1,13 +1,13 @@
-# Sitemap & Information Architecture: Bandhan Matrimonial Platform
+# Sitemap & Information Architecture: Bandham Matrimonial Platform
 
-> **REA Behavioral Architecture**: This document defines the page taxonomy, routing structure, component hierarchy, and navigation states for the **Bandhan** (`<APP_NAME>`) matrimonial web platform.
+> **REA Behavioral Architecture**: This document defines the page taxonomy, routing structure, component hierarchy, and navigation states for the **Bandham** (`<APP_NAME>`) matrimonial web platform.
 
 ---
 
 ## 1. High-Level Page Hierarchy & Sitemap
 
 ```
-Bandhan Matrimonial Platform
+Bandham Matrimonial Platform
 │
 ├── 🌐 Public / Guest Routes
 │   ├── / .................................... Public Landing Page (Hero, Value Props, Search Widget, Stories)
@@ -93,7 +93,7 @@ Bandhan Matrimonial Platform
 
 ### 2.1 Navigation Bar (Global Header)
 - **Guest State**:
-  - Logo (`Bandhan` with trademark wedding knot emblem)
+  - Logo (`Bandham` with trademark wedding knot emblem)
   - Nav Links: `Explore Matches`, `Success Stories`, `Membership Plans`, `Safety`
   - Action Buttons: `Login` (Secondary Outline), `Register Free` (Primary High-Contrast Accent)
 - **Authenticated Member State**:

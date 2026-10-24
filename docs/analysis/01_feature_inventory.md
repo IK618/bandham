@@ -1,6 +1,6 @@
 # Feature Inventory: Matrimonial Platform (Clean-Room Behavioral Reverse Engineering)
 
-> **Methodology Note (REA Skill Compliance)**: This document records the functional surface observed across publicly accessible matrimonial workflows (referencing public behavioral patterns exemplified by services like Shaadi.com). Per clean-room reverse-engineering rules, no proprietary code, trademarks, scraping, or confidential assets are utilized. All specifications below define the blueprint for our original matrimonial application, **Bandhan** (`<APP_NAME>`).
+> **Methodology Note (REA Skill Compliance)**: This document records the functional surface observed across publicly accessible matrimonial workflows (referencing public behavioral patterns exemplified by services like Shaadi.com). Per clean-room reverse-engineering rules, no proprietary code, trademarks, scraping, or confidential assets are utilized. All specifications below define the blueprint for our original matrimonial application, **Bandham** (`<APP_NAME>`).
 
 ---
 

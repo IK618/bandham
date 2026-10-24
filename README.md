@@ -1,7 +1,7 @@
-# Bandhan Matrimonial Platform
+# Bandham Matrimonial Platform
 > **An Enterprise-Grade, Privacy-First Matrimonial Web Application**
 
-Bandhan is an original, complete, end-to-end matrimonial platform built with a high-performance modern tech stack. Designed with a clean-room architecture inspired by real-world matrimonial flows, Bandhan implements zero-trust privacy, multi-step candidate onboarding, an asymmetric interest lifecycle, contact reveal credit gating, a 7-vector weighted compatibility matching engine, and comprehensive GDPR/DPDP data compliance.
+Bandham is an original, complete, end-to-end matrimonial platform built with a high-performance modern tech stack. Designed with a clean-room architecture inspired by real-world matrimonial flows, Bandham implements zero-trust privacy, multi-step candidate onboarding, an asymmetric interest lifecycle, contact reveal credit gating, a 7-vector weighted compatibility matching engine, and comprehensive GDPR/DPDP data compliance.
 
 ---
 
@@ -120,9 +120,9 @@ npx playwright test tests/e2e
 
 | Role | Email | OTP Code | Description |
 | :--- | :--- | :--- | :--- |
-| **Primary Member** | `ananya@bandhan.local` | `123456` | Verified candidate with active subscription |
-| **Moderator** | `moderator@bandhan.local` | `123456` | Review flagged profiles and member verifications |
-| **Administrator** | `admin@bandhan.local` | `123456` | System configuration, billing & audit analytics |
+| **Primary Member** | `ananya@bandham.local` | `123456` | Verified candidate with active subscription |
+| **Moderator** | `moderator@bandham.local` | `123456` | Review flagged profiles and member verifications |
+| **Administrator** | `admin@bandham.local` | `123456` | System configuration, billing & audit analytics |
 
 ---
 
@@ -136,4 +136,4 @@ npx playwright test tests/e2e
 ---
 
 ## 📄 License
-Internal Development / Proprietary - Bandhan Platform.
+Internal Development / Proprietary - Bandham Platform.

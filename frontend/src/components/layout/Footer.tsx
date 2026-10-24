@@ -12,7 +12,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white">
                 <Heart className="w-4 h-4 fill-white" />
               </div>
-              <span className="text-xl font-serif font-bold text-white tracking-wide">Bandhan</span>
+              <span className="text-xl font-royal font-bold tracking-wider text-white">Bandham</span>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
               An authentic, privacy-first matrimonial community designed for meaningful marriages.
@@ -60,7 +60,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} Bandhan Matrimonial Platform (`&lt;APP_NAME&gt;`). All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Bandham Matrimonial Platform. All rights reserved.</p>
           <p className="mt-2 sm:mt-0">Designed with integrity for sacred matrimonial unions.</p>
         </div>
       </div>

@@ -33,7 +33,7 @@ async def export_my_data(
 
     export_payload = {
         "export_metadata": {
-            "platform": "Bandhan Matrimonial Platform",
+            "platform": "Bandham Matrimonial Platform",
             "exported_at": datetime.now(timezone.utc).isoformat(),
             "compliance": "GDPR / Digital Personal Data Protection (DPDP) Act",
         },

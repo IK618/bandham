@@ -1,4 +1,4 @@
-# Inferred Entities & Business Rules: Bandhan Matrimonial Platform
+# Inferred Entities & Business Rules: Bandham Matrimonial Platform
 
 > **REA Behavioral Architecture**: This document defines the domain entity relationships, state machines, lifecycle transitions, and business rule enforcement matrix deduced from real-world matrimonial platform mechanics.
 

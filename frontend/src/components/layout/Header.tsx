@@ -17,10 +17,10 @@ export function Header() {
               <Heart className="w-5 h-5 fill-white" />
             </div>
             <div>
-              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-brand-700 to-rose-600 bg-clip-text text-transparent font-serif">
-                Bandhan
+              <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-brand-700 via-rose-600 to-amber-600 bg-clip-text text-transparent font-royal">
+                Bandham
               </span>
-              <span className="hidden sm:inline-block ml-1.5 text-xs font-medium text-rose-500 uppercase tracking-widest">
+              <span className="hidden sm:inline-block ml-1.5 text-[10px] font-bold text-rose-700 uppercase tracking-[0.2em] px-2 py-0.5 bg-rose-50 rounded-full border border-rose-200">
                 Matrimony
               </span>
             </div>

@@ -1,4 +1,4 @@
-# Roles, Permissions & RBAC Matrix: Bandhan Matrimonial Platform
+# Roles, Permissions & RBAC Matrix: Bandham Matrimonial Platform
 
 > **Security & Access Governance**: Matrimonial applications store high-sensitivity personal information (birth details, family backgrounds, financial income brackets, private photographs, and romantic communications). Access control must follow the **Principle of Least Privilege (PoLP)**. This document specifies the exact Role-Based Access Control (RBAC) model.
 

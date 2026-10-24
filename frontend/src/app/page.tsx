@@ -30,12 +30,12 @@ export default function HomePage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                 <Link href="/register">
-                  <Button variant="primary" size="lg" className="w-full sm:w-auto shadow-lg shadow-brand-500/20">
+                  <Button variant="primary" size="lg" className="w-full sm:w-auto">
                     Create Free Profile <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
                 <Link href="/search">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                  <Button variant="secondary" size="lg" className="w-full sm:w-auto">
                     Explore Matches
                   </Button>
                 </Link>
@@ -130,7 +130,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <h2 className="text-3xl font-serif font-bold text-gray-900">
-            Why Discerning Families Choose Bandhan
+            Why Discerning Families Choose Bandham
           </h2>
           <p className="text-base text-gray-600">
             Engineered from first principles to prioritize dignity, safety, and mutual compatibility.
@@ -175,7 +175,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl font-serif font-bold text-gray-900">Recent Matrimonial Unions</h2>
-            <p className="text-sm text-gray-600 mt-2">Real couples who met through Bandhan&apos;s verified matching</p>
+            <p className="text-sm text-gray-600 mt-2">Real couples who met through Bandham&apos;s verified matching</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -190,7 +190,7 @@ export default function HomePage() {
                 </div>
               </div>
               <p className="text-sm text-gray-600 italic">
-                &ldquo;Bandhan was refreshing because neither of us received aggressive telemarketing calls. We connected over our mutual love for Hindustani music and tech careers, and our families met within two months.&rdquo;
+                &ldquo;Bandham was refreshing because neither of us received aggressive telemarketing calls. We connected over our mutual love for Hindustani music and tech careers, and our families met within two months.&rdquo;
               </p>
             </div>
 

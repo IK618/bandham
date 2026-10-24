@@ -1,6 +1,6 @@
-# Matching Engine Specification & Worked Numerical Example: Bandhan Platform
+# Matching Engine Specification & Worked Numerical Example: Bandham Platform
 
-> **Algorithm Specification**: The Bandhan Matching Engine calculates a bidirectional or expectation-weighted compatibility score (0% to 100%) between a Member's defined `PartnerPreference` vector and a prospective candidate's hydrated `Profile`.
+> **Algorithm Specification**: The Bandham Matching Engine calculates a bidirectional or expectation-weighted compatibility score (0% to 100%) between a Member's defined `PartnerPreference` vector and a prospective candidate's hydrated `Profile`.
 
 ---
 

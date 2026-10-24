@@ -1,8 +1,8 @@
-# Product Requirements Document (PRD): Bandhan Matrimonial Platform
+# Product Requirements Document (PRD): Bandham Matrimonial Platform
 
 > **Document Status**: Approved Baseline  
 > **Target Version**: v1.0.0 (MVP)  
-> **Product Name**: Bandhan (`<APP_NAME>`)  
+> **Product Name**: Bandham (`<APP_NAME>`)  
 > **Target Audience**: Marriage-minded individuals, parents, and families seeking culturally aligned life partners.
 
 ---
@@ -15,7 +15,7 @@ Modern digital matchmaking presents a polarization problem:
 2. **Legacy Matrimonial Portals** suffer from archaic user interfaces, predatory paywalls, invasive spam telemarketing, weak data privacy, and rampant fake profiles/bots.
 
 ### 1.2 Product Vision
-**Bandhan** (`<APP_NAME>`) is an original, privacy-first, full-stack matrimonial web application designed to deliver:
+**Bandham** (`<APP_NAME>`) is an original, privacy-first, full-stack matrimonial web application designed to deliver:
 - High-fidelity multidimensional profile matching (balancing personal, cultural, educational, and astrological preferences).
 - Respectful, asymmetric connection protocols (family-friendly express interest funnels).
 - Zero-trust privacy controls (PII masking, dynamic photo watermarking, and audit-logged contact reveals).

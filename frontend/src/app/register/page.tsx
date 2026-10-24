@@ -223,7 +223,7 @@ export default function RegisterPage() {
         )}
 
         <div className="pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
-          Already registered on Bandhan?{" "}
+          Already registered on Bandham?{" "}
           <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-700 underline">
             Sign In Here
           </Link>

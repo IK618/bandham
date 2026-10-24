@@ -1,12 +1,12 @@
-# Security, Privacy & OWASP Top 10 Compliance: Bandhan Platform
+# Security, Privacy & OWASP Top 10 Compliance: Bandham Platform
 
-> **Zero-Trust Security & Compliance Architecture**: Matrimonial applications process sensitive biographical, religious, financial, and personal photographic data. This document outlines the cryptographic controls, PII protections, OWASP compliance, and regulatory adherence implemented across Bandhan (`<APP_NAME>`).
+> **Zero-Trust Security & Compliance Architecture**: Matrimonial applications process sensitive biographical, religious, financial, and personal photographic data. This document outlines the cryptographic controls, PII protections, OWASP compliance, and regulatory adherence implemented across Bandham (`<APP_NAME>`).
 
 ---
 
 ## 1. OWASP Top 10 Implementation & Verification Checklist
 
-| OWASP Vulnerability Category | Mitigation Architecture in Bandhan | Verification Mechanism |
+| OWASP Vulnerability Category | Mitigation Architecture in Bandham | Verification Mechanism |
 | :--- | :--- | :--- |
 | **A01: Broken Access Control** | Declarative RBAC (`require_roles(...)`), object-level authorization ensuring users can only mutate their own profiles, chat transcripts unreadable without active abuse reports. | Tested in automated API regression suite (`test_access_control.py`). |
 | **A02: Cryptographic Failures** | Bcrypt password hashing (cost factor >= 12), SHA-256 HMAC for JWT signing, TLS 1.3 in transit, AES-256 at rest in database and S3. | Verified cipher suites and zero plain-text credential persistence. |
@@ -42,7 +42,7 @@ def sanitize_bio_narrative(cls, v: str) -> str:
 ### 2.2 Dynamic Photo Watermarking
 When a high-resolution photo is rendered for a viewer:
 - A semi-transparent watermark is dynamically stamped across the diagonal canvas:
-  `Bandhan Verified • Viewer ID: BDN-XXXXX • Timestamp: YYYY-MM-DD`
+  `Bandham Verified • Viewer ID: BDN-XXXXX • Timestamp: YYYY-MM-DD`
 - Psychological and forensic deterrence against screenshot redistribution on external forums.
 
 ---

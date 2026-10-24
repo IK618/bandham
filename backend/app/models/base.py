@@ -12,7 +12,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
-    """Declarative base class for all SQLAlchemy models in Bandhan."""
+    """Declarative base class for all SQLAlchemy models in Bandham."""
     pass
 
 

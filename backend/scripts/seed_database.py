@@ -117,7 +117,7 @@ async def seed_plans(session: AsyncSession) -> List[Plan]:
 
 async def seed_staff(session: AsyncSession) -> None:
     """Creates default Admin and Moderator accounts."""
-    admin_email = "admin@bandhan.local"
+    admin_email = "admin@bandham.local"
     if not await session.scalar(select(User).where(User.email == admin_email)):
         admin = User(
             email=admin_email,
@@ -130,7 +130,7 @@ async def seed_staff(session: AsyncSession) -> None:
         )
         session.add(admin)
 
-    mod_email = "moderator@bandhan.local"
+    mod_email = "moderator@bandham.local"
     if not await session.scalar(select(User).where(User.email == mod_email)):
         mod = User(
             email=mod_email,
@@ -157,7 +157,7 @@ async def seed_profiles(session: AsyncSession, gold_plan: Plan) -> None:
 
     # 1. Primary Seed Persona: Ananya (Female, Software Architect)
     ananya_user = User(
-        email="ananya@bandhan.local",
+        email="ananya@bandham.local",
         phone_number="+919876543210",
         password_hash=get_password_hash("Ananya@12345"),
         role=UserRole.MEMBER,

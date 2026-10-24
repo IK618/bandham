@@ -43,8 +43,8 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
             <Heart className="w-6 h-6 fill-white" />
           </div>
-          <h2 className="text-2xl font-bold font-serif text-gray-900 tracking-tight">
-            Welcome Back to Bandhan
+          <h2 className="text-2xl font-bold font-royal text-gray-900 tracking-tight">
+            Welcome Back to Bandham
           </h2>
           <p className="text-xs text-gray-500 mt-1">
             Sign in to check today&apos;s matches and reply to incoming interests
@@ -69,7 +69,7 @@ export default function LoginPage() {
                 required
                 value={emailOrPhone}
                 onChange={(e) => setEmailOrPhone(e.target.value)}
-                placeholder="ananya@bandhan.local or +919876543210"
+                placeholder="ananya@bandham.local or +919876543210"
                 className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
               />
             </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
             </Link>
           </p>
           <p className="text-[11px] text-gray-400">
-            Demo Credentials: <span className="font-mono text-gray-600">ananya@bandhan.local</span> / <span className="font-mono text-gray-600">Ananya@12345</span>
+            Demo Credentials: <span className="font-mono text-gray-600">ananya@bandham.local</span> / <span className="font-mono text-gray-600">Ananya@12345</span>
           </p>
         </div>
       </div>

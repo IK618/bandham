@@ -1,4 +1,4 @@
-# Database Architecture, ERD & Normalization: Bandhan Matrimonial Platform
+# Database Architecture, ERD & Normalization: Bandham Matrimonial Platform
 
 > **Relational Data Engineering Specification**: Matrimonial applications represent read-heavy, multi-attribute relational databases with strict integrity, privacy isolation, and high-dimensional search indexing. This document details the PostgreSQL 16 schema, normal forms, constraints, and indexing strategy.
 

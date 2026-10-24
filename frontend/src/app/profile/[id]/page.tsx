@@ -105,7 +105,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
               <span>{profile.first_name[0]}{profile.last_initial[0]}</span>
               {/* Dynamic Watermark Stamp */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center rotate-[-30deg] opacity-20 text-gray-900 font-mono text-xs font-black uppercase">
-                Bandhan Verified • {profile.profile_id_display}
+                Bandham Verified • {profile.profile_id_display}
               </div>
             </div>
 

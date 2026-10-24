@@ -1,6 +1,6 @@
 # User Journeys & Experience Architecture: Matrimonial Platform
 
-> **REA Clean-Room Behavioral Analysis**: This document models the complete lifecycle and cognitive pathways of users interacting with the **Bandhan** (`<APP_NAME>`) matrimonial ecosystem. It tracks emotional drivers, security checkpoints, friction gates, and monetization touchpoints from first landing to successful matrimony.
+> **REA Clean-Room Behavioral Analysis**: This document models the complete lifecycle and cognitive pathways of users interacting with the **Bandham** (`<APP_NAME>`) matrimonial ecosystem. It tracks emotional drivers, security checkpoints, friction gates, and monetization touchpoints from first landing to successful matrimony.
 
 ---
 
@@ -108,7 +108,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     actor Alice as Sender (Alice)
-    participant Platform as Bandhan Backend
+    participant Platform as Bandham Backend
     actor Bob as Recipient (Bob)
     
     Alice->>Platform: POST /api/v1/interests (recipient_id: Bob.id)

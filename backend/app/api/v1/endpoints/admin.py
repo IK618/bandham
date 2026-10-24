@@ -34,7 +34,7 @@ async def get_admin_dashboard_stats(
     active_subscriptions = (await db.execute(select(func.count(Subscription.id)).where(Subscription.status == SubscriptionStatusEnum.ACTIVE))).scalar_one()
 
     return {
-        "platform": "Bandhan Matrimonial Administration",
+        "platform": "Bandham Matrimonial Administration",
         "timestamp": datetime.now(timezone.utc),
         "metrics": {
             "total_registered_users": total_users,

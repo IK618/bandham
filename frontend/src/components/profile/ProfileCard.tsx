@@ -65,7 +65,7 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
 
         {/* Dynamic Watermark Stamp Overlay */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center rotate-[-25deg] opacity-15 text-gray-800 font-mono text-sm tracking-widest font-black uppercase">
-          Bandhan Protected • {profile.profile_id_display}
+          Bandham Protected • {profile.profile_id_display}
         </div>
 
         {/* Compatibility Badge Positioned Top Right */}
