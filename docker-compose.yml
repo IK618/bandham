@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # 1. PostgreSQL 16 Database with Trigram Search
   postgres:
@@ -35,22 +33,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # 3. MinIO S3-Compatible Local Object Storage
-  minio:
-    image: minio/minio:latest
-    container_name: bandhan_minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadminpassword
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-
-  # 4. FastAPI Python Backend
+  # 3. FastAPI Python Backend
   backend:
     build:
       context: ./backend
@@ -70,14 +53,11 @@ services:
       POSTGRES_DB: bandhan_db
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      S3_ENDPOINT_URL: http://minio:9000
-      S3_ACCESS_KEY: minioadmin
-      S3_SECRET_KEY: minioadminpassword
       ENVIRONMENT: development
     ports:
-      - "8000:8000"
+      - "8001:8000"
 
-  # 5. Next.js 15 App Router Frontend
+  # 4. Next.js 15 App Router Frontend
   frontend:
     build:
       context: ./frontend
@@ -87,11 +67,10 @@ services:
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      NEXT_PUBLIC_API_URL: http://localhost:8001/api/v1
     ports:
       - "3000:3000"
 
 volumes:
   postgres_data:
   redis_data:
-  minio_data:

@@ -26,7 +26,10 @@ config = context.config
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    try:
+        fileConfig(config.config_file_name)
+    except Exception:
+        pass
 
 # Overwrite sqlalchemy.url with dynamic app settings
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL_ASYNC)

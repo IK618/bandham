@@ -25,77 +25,7 @@ def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
     op.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
 
-    # 2. Create Custom ENUM Types
-    user_role_enum = postgresql.ENUM("MEMBER", "MODERATOR", "ADMIN", name="user_role_enum")
-    user_role_enum.create(op.get_bind(), checkfirst=True)
-
-    user_status_enum = postgresql.ENUM("PENDING_VERIFICATION", "ACTIVE", "SUSPENDED", "DEACTIVATED", "BANNED", name="user_status_enum")
-    user_status_enum.create(op.get_bind(), checkfirst=True)
-
-    created_by_enum = postgresql.ENUM("SELF", "PARENT", "SIBLING", "RELATIVE", "FRIEND", name="created_by_enum")
-    created_by_enum.create(op.get_bind(), checkfirst=True)
-
-    gender_enum = postgresql.ENUM("MALE", "FEMALE", "OTHER", name="gender_enum")
-    gender_enum.create(op.get_bind(), checkfirst=True)
-
-    marital_status_enum = postgresql.ENUM("NEVER_MARRIED", "DIVORCED", "WIDOWED", "AWAITING_DIVORCE", name="marital_status_enum")
-    marital_status_enum.create(op.get_bind(), checkfirst=True)
-
-    manglik_enum = postgresql.ENUM("YES", "NO", "DONT_KNOW", "ANGSHIK", name="manglik_enum")
-    manglik_enum.create(op.get_bind(), checkfirst=True)
-
-    employment_sector_enum = postgresql.ENUM("PRIVATE", "GOVERNMENT", "DEFENSE", "BUSINESS", "SELF_EMPLOYED", "NOT_WORKING", name="employment_sector_enum")
-    employment_sector_enum.create(op.get_bind(), checkfirst=True)
-
-    family_type_enum = postgresql.ENUM("NUCLEAR", "JOINT", name="family_type_enum")
-    family_type_enum.create(op.get_bind(), checkfirst=True)
-
-    family_values_enum = postgresql.ENUM("TRADITIONAL", "MODERATE", "LIBERAL", name="family_values_enum")
-    family_values_enum.create(op.get_bind(), checkfirst=True)
-
-    diet_enum = postgresql.ENUM("VEGETARIAN", "NON_VEGETARIAN", "EGGETARIAN", "VEGAN", "JAIN", name="diet_enum")
-    diet_enum.create(op.get_bind(), checkfirst=True)
-
-    smoking_enum = postgresql.ENUM("NO", "OCCASIONALLY", "YES", name="smoking_enum")
-    smoking_enum.create(op.get_bind(), checkfirst=True)
-
-    drinking_enum = postgresql.ENUM("NO", "OCCASIONALLY", "YES", name="drinking_enum")
-    drinking_enum.create(op.get_bind(), checkfirst=True)
-
-    manglik_pref_enum = postgresql.ENUM("STRICT_MATCH", "DOES_NOT_MATTER", name="manglik_preference_enum")
-    manglik_pref_enum.create(op.get_bind(), checkfirst=True)
-
-    photo_vis_enum = postgresql.ENUM("PUBLIC", "MEMBERS_ONLY", "ACCEPTED_ONLY", "ON_REQUEST", name="photo_visibility_enum")
-    photo_vis_enum.create(op.get_bind(), checkfirst=True)
-
-    interest_status_enum = postgresql.ENUM("PENDING", "ACCEPTED", "DECLINED", "CANCELLED", "EXPIRED", name="interest_status_enum")
-    interest_status_enum.create(op.get_bind(), checkfirst=True)
-
-    message_status_enum = postgresql.ENUM("SENT", "DELIVERED", "READ", name="message_status_enum")
-    message_status_enum.create(op.get_bind(), checkfirst=True)
-
-    sub_status_enum = postgresql.ENUM("ACTIVE", "EXPIRED", "CANCELLED", name="subscription_status_enum")
-    sub_status_enum.create(op.get_bind(), checkfirst=True)
-
-    pay_status_enum = postgresql.ENUM("PENDING", "COMPLETED", "FAILED", "REFUNDED", name="payment_status_enum")
-    pay_status_enum.create(op.get_bind(), checkfirst=True)
-
-    verif_type_enum = postgresql.ENUM("GOVERNMENT_ID", "SELFIE_LIVENESS", "SALARY_SLIP", name="verification_type_enum")
-    verif_type_enum.create(op.get_bind(), checkfirst=True)
-
-    verif_status_enum = postgresql.ENUM("PENDING", "APPROVED", "REJECTED", name="verification_status_enum")
-    verif_status_enum.create(op.get_bind(), checkfirst=True)
-
-    report_cat_enum = postgresql.ENUM("FAKE_PROFILE", "HARASSMENT", "FINANCIAL_SCAM", "MARRIED_FRAUD", "INAPPROPRIATE_MEDIA", name="report_category_enum")
-    report_cat_enum.create(op.get_bind(), checkfirst=True)
-
-    report_status_enum = postgresql.ENUM("PENDING", "UNDER_REVIEW", "RESOLVED", "DISMISSED", name="report_status_enum")
-    report_status_enum.create(op.get_bind(), checkfirst=True)
-
-    notif_type_enum = postgresql.ENUM("INTEREST_RECEIVED", "INTEREST_ACCEPTED", "CONTACT_VIEWED", "MESSAGE_RECEIVED", "SYSTEM", name="notification_type_enum")
-    notif_type_enum.create(op.get_bind(), checkfirst=True)
-
-    # 3. Create Tables
+    # 2. Create Tables
     op.create_table(
         "users",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
