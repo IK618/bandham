@@ -14,6 +14,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fillCredentials = (email: string, pass: string) => {
+    setEmailOrPhone(email);
+    setPassword(pass);
+    setError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -97,16 +103,47 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="pt-4 border-t border-gray-100 text-center text-xs text-gray-500 space-y-2">
-          <p>
-            Don&apos;t have a profile yet?{" "}
-            <Link href="/register" className="font-semibold text-brand-600 hover:text-brand-700 underline">
-              Register Free
-            </Link>
-          </p>
-          <p className="text-[11px] text-gray-400">
-            Demo Credentials: <span className="font-mono text-gray-600">ananya@bandham.local</span> / <span className="font-mono text-gray-600">Ananya@12345</span>
-          </p>
+        <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 space-y-3">
+          <div className="text-center">
+            <p>
+              Don&apos;t have a profile yet?{" "}
+              <Link href="/register" className="font-semibold text-brand-600 hover:text-brand-700 underline">
+                Register Free
+              </Link>
+            </p>
+          </div>
+
+          <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-3.5 space-y-2">
+            <p className="text-[11px] font-semibold text-amber-900 tracking-wide uppercase text-center">
+              Quick One-Click Demo Logins
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => fillCredentials("ananya@bandham.local", "Ananya@12345")}
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+              >
+                👰 Member
+              </button>
+              <button
+                type="button"
+                onClick={() => fillCredentials("admin@bandham.local", "Admin@12345")}
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+              >
+                🛡️ Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => fillCredentials("moderator@bandham.local", "Moderator@12345")}
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+              >
+                ⚖️ Moderator
+              </button>
+            </div>
+            <p className="text-[10px] text-amber-700 text-center">
+              Click any role above to pre-fill verified credentials.
+            </p>
+          </div>
         </div>
       </div>
     </div>
