@@ -19,6 +19,7 @@ from backend.app.models.profile import (
     DietEnum,
     SmokingDrinkingEnum,
 )
+from backend.app.models.preference import ManglikPreferenceEnum
 
 
 class ProfileBase(BaseModel):
@@ -103,8 +104,8 @@ class ProfileBase(BaseModel):
         return v
 
 
-class ProfileCreate(ProfileBase):
-    pass
+# ProfileCreate is an alias of ProfileBase to avoid redundant duplicate schemas
+ProfileCreate = ProfileBase
 
 
 class ProfileUpdate(BaseModel):
@@ -182,19 +183,47 @@ class ProfileDetailResponse(ProfileBase):
     compatibility_score: Optional[float] = None
 
 
-class ProfileSearchFilters(BaseModel):
-    gender: Optional[GenderEnum] = None
+# Partner Preference schemas consolidated into profile domain
+class PartnerPreferenceBase(BaseModel):
+    min_age: int = Field(default=21, ge=18, le=80)
+    max_age: int = Field(default=35, ge=18, le=80)
+    min_height_cm: int = Field(default=140, ge=130, le=220)
+    max_height_cm: int = Field(default=200, ge=130, le=220)
+    acceptable_marital_statuses: List[str] = ["NEVER_MARRIED"]
+    acceptable_religions: List[str] = []
+    acceptable_communities: List[str] = []
+    acceptable_mother_tongues: List[str] = []
+    acceptable_countries: List[str] = ["India"]
+    acceptable_cities: List[str] = []
+    min_education_level: Optional[str] = None
+    acceptable_employment_sectors: List[str] = []
+    min_income_bracket: Optional[str] = None
+    acceptable_diets: List[str] = []
+    manglik_preference: ManglikPreferenceEnum = ManglikPreferenceEnum.DOES_NOT_MATTER
+
+
+PartnerPreferenceCreate = PartnerPreferenceBase
+
+
+class PartnerPreferenceUpdate(BaseModel):
     min_age: Optional[int] = Field(None, ge=18, le=80)
     max_age: Optional[int] = Field(None, ge=18, le=80)
     min_height_cm: Optional[int] = Field(None, ge=130, le=220)
     max_height_cm: Optional[int] = Field(None, ge=130, le=220)
-    religions: Optional[List[str]] = None
-    communities: Optional[List[str]] = None
-    mother_tongues: Optional[List[str]] = None
-    cities: Optional[List[str]] = None
-    marital_statuses: Optional[List[MaritalStatusEnum]] = None
-    diets: Optional[List[DietEnum]] = None
-    manglik: Optional[ManglikEnum] = None
-    keyword: Optional[str] = None
-    page: int = Field(default=1, ge=1)
-    limit: int = Field(default=20, ge=1, le=50)
+    acceptable_marital_statuses: Optional[List[str]] = None
+    acceptable_religions: Optional[List[str]] = None
+    acceptable_communities: Optional[List[str]] = None
+    acceptable_mother_tongues: Optional[List[str]] = None
+    acceptable_countries: Optional[List[str]] = None
+    acceptable_cities: Optional[List[str]] = None
+    min_education_level: Optional[str] = None
+    acceptable_employment_sectors: Optional[List[str]] = None
+    min_income_bracket: Optional[str] = None
+    acceptable_diets: Optional[List[str]] = None
+    manglik_preference: Optional[ManglikPreferenceEnum] = None
+
+
+class PartnerPreferenceResponse(PartnerPreferenceBase):
+    id: str
+    user_id: str
+

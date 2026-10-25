@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
 from backend.app.models.interaction import InterestStatusEnum
+from backend.app.models.chat import MessageStatusEnum
 from backend.app.schemas.profile import ProfilePublicCard
 
 
@@ -59,4 +60,26 @@ class ContactStatusResponse(BaseModel):
     direction: Optional[str] = None  # "SENT" or "RECEIVED"
     interest_id: Optional[str] = None
     contact_credits_remaining: int = 0
+
+
+# Chat & 1-to-1 messaging schemas consolidated under interactions
+class MessageCreate(BaseModel):
+    content: str = Field(..., min_length=1, max_length=2000)
+
+
+class MessageResponse(BaseModel):
+    id: str
+    conversation_id: str
+    sender_id: str
+    content: str
+    status: MessageStatusEnum
+    created_at: datetime
+
+
+class ConversationResponse(BaseModel):
+    id: str
+    partner_profile: Optional[ProfilePublicCard] = None
+    last_message: Optional[MessageResponse] = None
+    unread_count: int = 0
+    updated_at: datetime
 

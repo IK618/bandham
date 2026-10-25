@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 from backend.app.models.safety import ReportCategoryEnum, ReportStatusEnum, NotificationTypeEnum
+from backend.app.models.user import UserRole, UserStatus
 
 
 class BlockCreate(BaseModel):
@@ -45,3 +46,27 @@ class NotificationResponse(BaseModel):
     reference_link: Optional[str] = None
     is_read: bool
     created_at: datetime
+
+
+# Admin & Governance schemas consolidated under trust & safety
+class AdminUserItem(BaseModel):
+    id: str
+    email: str
+    phone_number: str
+    role: UserRole
+    status: UserStatus
+    created_at: datetime
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    profile_id_display: Optional[str] = None
+    gender: Optional[str] = None
+    city: Optional[str] = None
+
+
+class UpdateUserRoleRequest(BaseModel):
+    role: UserRole
+
+
+class UpdateUserStatusRequest(BaseModel):
+    status: UserStatus
+    reason: Optional[str] = None

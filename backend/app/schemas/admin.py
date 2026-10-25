@@ -1,31 +1,16 @@
 """
-Schemas for Admin & Moderator census, role governance, and disciplinary moderation.
+Admin & Moderator governance schemas consolidated into `safety.py`.
+Re-exported for backward compatibility across endpoints.
 """
 
-from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel
-from backend.app.models.user import UserRole, UserStatus
+from backend.app.schemas.safety import (
+    AdminUserItem,
+    UpdateUserRoleRequest,
+    UpdateUserStatusRequest,
+)
 
-
-class AdminUserItem(BaseModel):
-    id: str
-    email: str
-    phone_number: str
-    role: UserRole
-    status: UserStatus
-    created_at: datetime
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    profile_id_display: Optional[str] = None
-    gender: Optional[str] = None
-    city: Optional[str] = None
-
-
-class UpdateUserRoleRequest(BaseModel):
-    role: UserRole
-
-
-class UpdateUserStatusRequest(BaseModel):
-    status: UserStatus
-    reason: Optional[str] = None
+__all__ = [
+    "AdminUserItem",
+    "UpdateUserRoleRequest",
+    "UpdateUserStatusRequest",
+]

@@ -71,14 +71,13 @@ The backend is built with **Python 3.11+**, **FastAPI**, **SQLAlchemy 2.0 (Async
 - `safety.py`: `Report`, `Block`, and `ActivityLog` tables for trust, safety, and audit logging.
 
 #### 3. `backend/app/schemas/` (Pydantic v2 Request & Response Data Contracts)
-- `auth.py`: Validation schemas for Registration, Login, OTP verification, and JWT Token payloads.
-- `profile.py`: `ProfileCreate`, `ProfileUpdate`, `ProfilePublicCard` (redacted), and `ProfileDetailResponse` (with pre-validators handling optional caste/community).
-- `preference.py`: Partner preference filters and search criteria validation.
-- `interaction.py`: Payloads for sending interests, updating interest status, and requesting contact reveals.
-- `chat.py`: Chat message creation payloads, conversation previews, and message pagination models.
-- `plan.py`: Membership plan tiers and credit transaction receipts.
-- `safety.py`: Abuse reporting and disciplinary audit schemas.
-- `admin.py`: User census listings, role modification requests (`UpdateUserRoleRequest`), and user status update requests (`UpdateUserStatusRequest`).
+Consolidated into 5 core, cohesive domain modules (with backward-compatible re-exports):
+- `auth.py`: Registration, Login, OTP verification, and JWT Token schemas.
+- `profile.py`: Core profile schemas (`ProfileBase`, `ProfileUpdate`, `ProfilePublicCard`, `ProfileDetailResponse`) and partner preference criteria (`PartnerPreferenceBase`, `PartnerPreferenceUpdate`, `PartnerPreferenceResponse`).
+- `interaction.py`: All member-to-member interactions including Interests (`InterestCreate`, `InterestResponse`), Bookmarks (`ShortlistCreate`, `ShortlistResponse`), Contact Unlocking (`ContactRevealResponse`, `ContactStatusResponse`), and 1-to-1 Chat Messaging (`MessageCreate`, `MessageResponse`, `ConversationResponse`).
+- `safety.py`: Trust, safety, abuse reporting (`ReportCreate`, `ReportResponse`, `BlockCreate`), notifications, and full admin/moderator governance (`AdminUserItem`, `UpdateUserRoleRequest`, `UpdateUserStatusRequest`).
+- `plan.py`: Membership plan tiers and credit transaction receipts (`PlanResponse`, `SubscriptionResponse`, `MockCheckoutRequest`).
+- `preference.py`, `chat.py`, `admin.py`: Lightweight compatibility re-export bridges preserving seamless imports.
 
 #### 4. `backend/app/api/v1/` (REST Endpoints & Routing)
 - `deps.py`: Dependency injection providers (`get_db`, `get_current_user`, `require_admin_or_moderator`, `require_admin`).
