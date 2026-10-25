@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, AlertTriangle, Users, CheckCircle, Ban } from "lucide-react";
+import Link from "next/link";
+import { Shield, AlertTriangle, Users, CheckCircle, Ban, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -11,6 +12,7 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const fetchAdminData = async () => {
     try {
@@ -19,7 +21,14 @@ export default function AdminDashboardPage() {
       setStats(s);
       setReports(r);
     } catch (err: any) {
-      console.error(err);
+      const msg = String(err?.message || "");
+      if (msg.includes("401") || msg.includes("Authentication required") || msg.includes("credentials") || msg.includes("session")) {
+        setAuthError("Administrative session required. Please sign in with an Administrator or Moderator account.");
+      } else if (msg.includes("403") || msg.includes("Insufficient permissions") || msg.includes("Forbidden")) {
+        setAuthError("Access Restricted: Your account does not have administrative privileges. Only ADMIN and MODERATOR roles may access this portal.");
+      } else {
+        setAuthError(err.message || "Failed to connect to administrative portal.");
+      }
     } finally {
       setLoading(false);
     }
@@ -51,10 +60,29 @@ export default function AdminDashboardPage() {
 
   if (loading) return <LoadingSpinner text="Connecting to administrative command portal…" />;
 
+  if (authError) {
+    return (
+      <div className="max-w-md mx-auto my-16 p-8 bg-white border border-rose-100 rounded-3xl text-center shadow-lg space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-gray-900 text-amber-400 flex items-center justify-center mx-auto shadow-sm">
+          <Shield className="w-6 h-6" />
+        </div>
+        <h2 className="text-xl font-bold font-royal text-gray-900">Administrative Portal</h2>
+        <p className="text-xs text-gray-600 leading-relaxed">{authError}</p>
+        <div className="pt-2">
+          <Link href="/login">
+            <Button variant="primary" size="lg" className="w-full">
+              <LogIn className="w-4 h-4 mr-2" /> Sign In as Administrator
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-gray-900 text-white flex items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-gray-900 text-amber-400 flex items-center justify-center shadow-md">
           <Shield className="w-6 h-6" />
         </div>
         <div>
@@ -68,7 +96,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Metrics Cards */}
-      {stats && (
+      {stats && stats.metrics && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <span className="text-xs text-gray-500">Registered Members</span>

@@ -26,15 +26,19 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await apiClient("/auth/login", {
+      const res = await apiClient<any>("/auth/login", {
         method: "POST",
         body: JSON.stringify({
           email_or_phone: emailOrPhone,
           password: password,
         }),
       });
-      // Redirect to dashboard upon successful login
-      router.push("/dashboard");
+      // Route admin/moderator staff to trust center, and members to matchmaking dashboard
+      if (res?.role === "ADMIN" || res?.role === "MODERATOR") {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch (err: any) {
       setError(err.message || "Invalid credentials. Please verify your email/phone and password.");
     } finally {

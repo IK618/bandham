@@ -8,6 +8,8 @@ import { apiClient } from "@/lib/api";
 interface UserProfilePreview {
   first_name: string;
   profile_id: string;
+  role: string;
+  isAdmin: boolean;
 }
 
 export function Header() {
@@ -17,12 +19,47 @@ export function Header() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const prof = await apiClient<any>("/profiles/me");
-        if (prof && prof.first_name) {
-          setCurrentUser({
-            first_name: prof.first_name,
-            profile_id: prof.profile_id_display || "",
-          });
+        // 1. Check account authentication and role
+        const me = await apiClient<any>("/auth/me");
+        if (me && me.role) {
+          const isStaff = me.role === "ADMIN" || me.role === "MODERATOR";
+
+          if (isStaff) {
+            setCurrentUser({
+              first_name: me.role === "ADMIN" ? "Admin" : "Moderator",
+              profile_id: me.role,
+              role: me.role,
+              isAdmin: true,
+            });
+            return;
+          }
+
+          // 2. Member account: fetch member profile
+          try {
+            const prof = await apiClient<any>("/profiles/me");
+            if (prof && prof.first_name) {
+              setCurrentUser({
+                first_name: prof.first_name,
+                profile_id: prof.profile_id_display || "",
+                role: "MEMBER",
+                isAdmin: false,
+              });
+            } else {
+              setCurrentUser({
+                first_name: "Member",
+                profile_id: "",
+                role: "MEMBER",
+                isAdmin: false,
+              });
+            }
+          } catch {
+            setCurrentUser({
+              first_name: "Member",
+              profile_id: "",
+              role: "MEMBER",
+              isAdmin: false,
+            });
+          }
         }
       } catch (e) {
         // Unauthenticated visitor
@@ -65,45 +102,83 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
-              Dashboard
-            </Link>
-            <Link href="/matches" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-              <Sparkles className="w-4 h-4 text-gold-500" />
-              Today's Matches
-            </Link>
-            <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-              <Search className="w-4 h-4" />
-              Search
-            </Link>
-            <Link href="/inbox" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
-              Inbox
-            </Link>
-            <Link href="/chat" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-              <MessageSquare className="w-4 h-4" />
-              Chat
-            </Link>
-            <Link href="/pricing" className="text-sm font-semibold text-gold-600 hover:text-gold-700 bg-gold-50 px-3 py-1 rounded-full border border-gold-200 transition-colors">
-              Upgrade Plans
-            </Link>
+            {currentUser?.isAdmin ? (
+              <>
+                <Link
+                  href="/admin"
+                  className="text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full border border-amber-300 flex items-center gap-1.5 transition-colors"
+                >
+                  <Shield className="w-4 h-4 text-amber-600" />
+                  Trust &amp; Safety Portal
+                </Link>
+                <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
+                  <Search className="w-4 h-4" />
+                  Browse Profiles
+                </Link>
+                <Link href="/pricing" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                  Monetization Plans
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                  Dashboard
+                </Link>
+                <Link href="/matches" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
+                  <Sparkles className="w-4 h-4 text-gold-500" />
+                  Today&apos;s Matches
+                </Link>
+                <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
+                  <Search className="w-4 h-4" />
+                  Search
+                </Link>
+                <Link href="/inbox" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                  Inbox
+                </Link>
+                <Link href="/chat" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
+                  <MessageSquare className="w-4 h-4" />
+                  Chat
+                </Link>
+                <Link href="/pricing" className="text-sm font-semibold text-gold-600 hover:text-gold-700 bg-gold-50 px-3 py-1 rounded-full border border-gold-200 transition-colors">
+                  Upgrade Plans
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* Right Action Icons & Auth Profile Menu */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/settings" className="p-2 text-gray-500 hover:text-brand-600 hover:bg-rose-50 rounded-full transition-colors" title="Settings & Privacy">
+            <Link
+              href={currentUser?.isAdmin ? "/admin" : "/settings"}
+              className="p-2 text-gray-500 hover:text-brand-600 hover:bg-rose-50 rounded-full transition-colors"
+              title={currentUser?.isAdmin ? "Admin Console" : "Settings & Privacy"}
+            >
               <Shield className="w-5 h-5" />
             </Link>
 
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-brand-900 hover:bg-rose-100 transition-colors"
+                  href={currentUser.isAdmin ? "/admin" : "/dashboard"}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${
+                    currentUser.isAdmin
+                      ? "bg-slate-900 border-slate-700 text-white hover:bg-slate-800"
+                      : "bg-rose-50 border-rose-200 text-brand-900 hover:bg-rose-100"
+                  }`}
                 >
-                  <div className="w-6 h-6 rounded-full bg-brand-600 text-white font-serif font-bold text-xs flex items-center justify-center">
+                  <div
+                    className={`w-6 h-6 rounded-full font-serif font-bold text-xs flex items-center justify-center ${
+                      currentUser.isAdmin ? "bg-amber-500 text-slate-900" : "bg-brand-600 text-white"
+                    }`}
+                  >
                     {currentUser.first_name?.[0] || "U"}
                   </div>
                   <span className="text-xs font-semibold">{currentUser.first_name}</span>
+                  {currentUser.isAdmin && (
+                    <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full ml-1">
+                      {currentUser.role}
+                    </span>
+                  )}
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -142,53 +217,76 @@ export function Header() {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-rose-100 bg-white px-4 pt-2 pb-6 space-y-3">
-          <Link href="/dashboard" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
-            Dashboard
-          </Link>
-          <Link href="/matches" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
-            Today's Matches
-          </Link>
-          <Link href="/search" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
-            Search Directory
-          </Link>
-          <Link href="/inbox" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
-            Inbox & Interests
-          </Link>
-          <Link href="/chat" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
-            Chat Messenger
-          </Link>
-          <Link href="/pricing" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-semibold text-gold-700 bg-gold-50">
+          {currentUser?.isAdmin ? (
+            <>
+              <Link href="/admin" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-bold text-amber-800 bg-amber-50">
+                🛡️ Trust &amp; Safety Portal
+              </Link>
+              <Link href="/search" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                Browse Profiles
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/dashboard" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                Dashboard
+              </Link>
+              <Link href="/matches" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                Today&apos;s Matches
+              </Link>
+              <Link href="/search" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                Search Profiles
+              </Link>
+              <Link href="/inbox" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                Inbox &amp; Connections
+              </Link>
+              <Link href="/chat" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                Messages
+              </Link>
+            </>
+          )}
+
+          <Link href="/pricing" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gold-600 hover:bg-gold-50">
             Membership Plans
           </Link>
 
-          {currentUser ? (
-            <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-brand-600 text-white font-serif font-bold text-sm flex items-center justify-center">
-                  {currentUser.first_name?.[0] || "U"}
+          <div className="pt-4 border-t border-gray-100">
+            {currentUser ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-3 py-1">
+                  <div
+                    className={`w-7 h-7 rounded-full font-serif font-bold text-xs flex items-center justify-center ${
+                      currentUser.isAdmin ? "bg-amber-500 text-slate-900" : "bg-brand-600 text-white"
+                    }`}
+                  >
+                    {currentUser.first_name?.[0] || "U"}
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-gray-900 block">{currentUser.first_name}</span>
+                    <span className="text-[10px] text-gray-500 font-mono">{currentUser.profile_id}</span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-900">{currentUser.first_name}</p>
-                  <p className="text-[10px] text-gray-500 font-mono">{currentUser.profile_id}</p>
-                </div>
+                <button
+                  onClick={() => {
+                    closeMenu();
+                    handleLogout();
+                  }}
+                  className="w-full text-center px-4 py-2 border border-red-200 rounded-full text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                >
+                  Log Out
+                </button>
               </div>
-              <button
-                onClick={() => { closeMenu(); handleLogout(); }}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-200"
-              >
-                <LogOut className="w-3.5 h-3.5" /> Logout
-              </button>
-            </div>
-          ) : (
-            <div className="pt-4 border-t border-gray-100 flex gap-2">
-              <Link href="/login" onClick={closeMenu} className="flex-1 text-center py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md">
-                Login
-              </Link>
-              <Link href="/register" onClick={closeMenu} className="flex-1 text-center py-2 text-sm font-medium text-white bg-brand-600 rounded-md">
-                Register Free
-              </Link>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-2">
+                <Link href="/login" onClick={closeMenu} className="block w-full text-center px-4 py-2 border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  Login
+                </Link>
+                <Link href="/register" onClick={closeMenu} className="block w-full text-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700">
+                  Register Free
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </header>

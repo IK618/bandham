@@ -129,6 +129,39 @@ async def seed_staff(session: AsyncSession) -> None:
             phone_verified=True
         )
         session.add(admin)
+        await session.flush()
+        session.add(Profile(
+            user_id=admin.id,
+            profile_id_display="BDN-ADMIN01",
+            created_by=CreatedByEnum.SELF,
+            first_name="System",
+            last_name="Administrator",
+            gender=GenderEnum.OTHER,
+            date_of_birth=date(1985, 1, 1),
+            height_cm=175,
+            marital_status=MaritalStatusEnum.NEVER_MARRIED,
+            religion="Universal",
+            mother_tongue="English",
+            community="Staff",
+            highest_education="Doctorate",
+            education_field="Computer Science & Cyber Security",
+            college_name="Indian Institute of Technology",
+            employment_sector=EmploymentSectorEnum.GOVERNMENT,
+            occupation="Platform Director",
+            annual_income_bracket="INR 50-75 LPA",
+            residence_city="Bangalore",
+            residence_state="Karnataka",
+            residence_country="India",
+            citizenship="Indian",
+            family_type=FamilyTypeEnum.NUCLEAR,
+            family_values=FamilyValuesEnum.LIBERAL,
+            diet=DietEnum.VEGETARIAN,
+            smoking=SmokingDrinkingEnum.NO,
+            drinking=SmokingDrinkingEnum.NO,
+            bio_narrative="Official Bandham Matrimony Trust & Safety Administration Officer. Dedicated to platform security, member safety, DPDP privacy compliance, and genuine profile verification.",
+            profile_completeness_pct=100,
+            is_searchable=False
+        ))
 
     mod_email = "moderator@bandham.local"
     if not await session.scalar(select(User).where(User.email == mod_email)):
@@ -142,6 +175,39 @@ async def seed_staff(session: AsyncSession) -> None:
             phone_verified=True
         )
         session.add(mod)
+        await session.flush()
+        session.add(Profile(
+            user_id=mod.id,
+            profile_id_display="BDN-MOD01",
+            created_by=CreatedByEnum.SELF,
+            first_name="Community",
+            last_name="Moderator",
+            gender=GenderEnum.OTHER,
+            date_of_birth=date(1990, 1, 1),
+            height_cm=170,
+            marital_status=MaritalStatusEnum.NEVER_MARRIED,
+            religion="Universal",
+            mother_tongue="English",
+            community="Staff",
+            highest_education="Masters",
+            education_field="Digital Media & Trust Ethics",
+            college_name="National University",
+            employment_sector=EmploymentSectorEnum.PRIVATE,
+            occupation="Senior Trust & Safety Moderator",
+            annual_income_bracket="INR 25-35 LPA",
+            residence_city="Bangalore",
+            residence_state="Karnataka",
+            residence_country="India",
+            citizenship="Indian",
+            family_type=FamilyTypeEnum.NUCLEAR,
+            family_values=FamilyValuesEnum.LIBERAL,
+            diet=DietEnum.VEGETARIAN,
+            smoking=SmokingDrinkingEnum.NO,
+            drinking=SmokingDrinkingEnum.NO,
+            bio_narrative="Official Bandham Community Moderator. Reviewing incident reports, harassment flags, photo compliance, and trust verification.",
+            profile_completeness_pct=100,
+            is_searchable=False
+        ))
     await session.flush()
 
 

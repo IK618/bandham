@@ -18,7 +18,22 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadDashboard() {
       try {
+        // 1. Verify user role first
+        try {
+          const authUser = await apiClient<any>("/auth/me");
+          if (authUser?.role === "ADMIN" || authUser?.role === "MODERATOR") {
+            window.location.href = "/admin";
+            return;
+          }
+        } catch {
+          // If unauthenticated, continue to let /profiles/me or error boundary handle it
+        }
+
         const myProf = await apiClient<ProfileDetail>("/profiles/me");
+        if (myProf?.profile_id_display?.includes("ADMIN") || myProf?.profile_id_display?.includes("MOD")) {
+          window.location.href = "/admin";
+          return;
+        }
         setProfile(myProf);
 
         const recs = await apiClient<ProfileCardType[]>("/matches/daily?limit=4");

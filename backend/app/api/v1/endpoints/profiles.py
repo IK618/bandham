@@ -12,8 +12,19 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_optional_current_user, get_db
-from backend.app.models.user import User
-from backend.app.models.profile import Profile, GenderEnum, MaritalStatusEnum, DietEnum, ManglikEnum
+from backend.app.models.user import User, UserRole
+from backend.app.models.profile import (
+    Profile,
+    CreatedByEnum,
+    GenderEnum,
+    MaritalStatusEnum,
+    DietEnum,
+    ManglikEnum,
+    EmploymentSectorEnum,
+    FamilyTypeEnum,
+    FamilyValuesEnum,
+    SmokingDrinkingEnum,
+)
 from backend.app.models.photo import Photo
 from backend.app.models.interaction import ContactView
 from backend.app.models.preference import PartnerPreference
@@ -43,6 +54,46 @@ async def get_my_profile(
     query = select(Profile).where(Profile.user_id == current_user.id)
     profile = (await db.execute(query)).scalars().first()
     if not profile:
+        # If user is an administrative or moderator staff member, provide staff profile representation
+        if current_user.role in [UserRole.ADMIN, UserRole.MODERATOR]:
+            is_admin = current_user.role == UserRole.ADMIN
+            return ProfileDetailResponse(
+                id=str(current_user.id),
+                user_id=str(current_user.id),
+                profile_id_display=f"BDN-{current_user.role.value[:5]}01",
+                created_by=CreatedByEnum.SELF,
+                first_name="System" if is_admin else "Community",
+                last_name="Administrator" if is_admin else "Moderator",
+                gender=GenderEnum.OTHER,
+                date_of_birth=date(1985, 1, 1),
+                age=40,
+                height_cm=175,
+                marital_status=MaritalStatusEnum.NEVER_MARRIED,
+                religion="Universal",
+                mother_tongue="English",
+                community="Staff",
+                highest_education="Doctorate" if is_admin else "Masters",
+                education_field="Trust & Safety",
+                college_name="Platform Operations Center",
+                employment_sector=EmploymentSectorEnum.GOVERNMENT if is_admin else EmploymentSectorEnum.PRIVATE,
+                occupation="Platform Director" if is_admin else "Trust & Safety Moderator",
+                annual_income_bracket="INR 50-75 LPA",
+                residence_city="Bangalore",
+                residence_state="Karnataka",
+                residence_country="India",
+                citizenship="Indian",
+                family_type=FamilyTypeEnum.NUCLEAR,
+                family_values=FamilyValuesEnum.LIBERAL,
+                diet=DietEnum.VEGETARIAN,
+                smoking=SmokingDrinkingEnum.NO,
+                drinking=SmokingDrinkingEnum.NO,
+                bio_narrative="Official Bandham Matrimony Trust & Safety Administration Officer.",
+                profile_completeness_pct=100,
+                is_searchable=False,
+                photo_urls=[],
+                is_photo_blurred=False,
+                has_contact_revealed=False
+            )
         raise HTTPException(status_code=404, detail="Profile not found. Please complete onboarding.")
 
     # Fetch user photos
