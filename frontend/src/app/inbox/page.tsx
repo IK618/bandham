@@ -122,7 +122,7 @@ export default function InboxPage() {
                         {card ? `${card.first_name} ${card.last_initial || card.last_name || ""}` : "Member Profile"}
                       </h3>
                       <Badge variant={item.status === "ACCEPTED" ? "success" : item.status === "PENDING" ? "brand" : "neutral"}>
-                        {item.status}
+                        {item.status === "ACCEPTED" ? "Connected (Mutual Consent ✓)" : item.status}
                       </Badge>
                     </div>
                     {card && (

@@ -46,3 +46,17 @@ class ContactRevealResponse(BaseModel):
     email: str
     contact_credits_remaining: int
     revealed_at: datetime
+
+
+class ContactStatusResponse(BaseModel):
+    """Reflects mutual consent and contact reveal status between two profiles."""
+    target_user_id: str
+    consent_status: str  # "NOT_REQUESTED", "PENDING", "ACCEPTED", "DECLINED"
+    is_revealed: bool
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    can_reveal: bool
+    direction: Optional[str] = None  # "SENT" or "RECEIVED"
+    interest_id: Optional[str] = None
+    contact_credits_remaining: int = 0
+

@@ -7,11 +7,18 @@ import {
   Heart,
   ShieldCheck,
   Phone,
+  Mail,
   ArrowLeft,
   CheckCircle,
   LogIn,
+  Lock,
+  Clock,
+  Copy,
+  Check,
+  MessageSquare,
+  AlertCircle,
 } from "lucide-react";
-import { ProfileDetail } from "@/types";
+import { ProfileDetail, ContactStatusResponse } from "@/types";
 import { CompatibilityBadge } from "@/components/profile/CompatibilityBadge";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -23,19 +30,39 @@ export default function ProfileDetailPage() {
   const profileId = (params?.id as string) || "";
 
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
+  const [contactStatus, setContactStatus] = useState<ContactStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statusLoading, setStatusLoading] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
-  const [interestSent, setInterestSent] = useState(false);
-  const [revealing, setRevealing] = useState(false);
-  const [contactData, setContactData] = useState<{ phone: string; email: string } | null>(null);
 
+  // Action states
+  const [sendingRequest, setSendingRequest] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+  const [respondingConsent, setRespondingConsent] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [bannerNotice, setBannerNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Fetch profile and contact consent status
   useEffect(() => {
     if (!profileId) return;
 
-    async function loadProfile() {
+    async function loadData() {
       try {
         const data = await apiClient<ProfileDetail>(`/profiles/${profileId}`);
         setProfile(data);
+
+        // Fetch mutual consent & contact reveal status
+        if (data.user_id) {
+          setStatusLoading(true);
+          try {
+            const status = await apiClient<ContactStatusResponse>(`/contacts/${data.user_id}/status`);
+            setContactStatus(status);
+          } catch (err) {
+            console.warn("Could not retrieve contact status (guest or unauthenticated):", err);
+          } finally {
+            setStatusLoading(false);
+          }
+        }
       } catch (err: any) {
         const msg = String(err?.message || "");
         if (msg.includes("Authentication required") || msg.includes("401") || msg.includes("valid session")) {
@@ -45,35 +72,122 @@ export default function ProfileDetailPage() {
         setLoading(false);
       }
     }
-    loadProfile();
+    loadData();
   }, [profileId]);
 
-  const handleSendInterest = async () => {
-    if (!profile) return;
+  // Refresh contact status helper
+  const refreshStatus = async (targetUserId: string) => {
     try {
-      await apiClient("/interests", {
-        method: "POST",
-        body: JSON.stringify({ recipient_id: profile.user_id }),
-      });
-      setInterestSent(true);
-      alert("Interest sent successfully!");
-    } catch (err: any) {
-      alert(err.message || "Failed to send interest.");
+      const status = await apiClient<ContactStatusResponse>(`/contacts/${targetUserId}/status`);
+      setContactStatus(status);
+    } catch (err) {
+      console.error("Failed to refresh contact status:", err);
     }
   };
 
+  // 1. Send connection / contact sharing request
+  const handleRequestContactOrInterest = async () => {
+    if (!profile) return;
+    setSendingRequest(true);
+    setBannerNotice(null);
+    try {
+      await apiClient(`/contacts/${profile.user_id}/request`, { method: "POST" });
+      setBannerNotice({
+        type: "success",
+        text: `Connection & contact sharing request sent to ${profile.first_name}! You will be able to unlock verified details once they accept.`,
+      });
+      await refreshStatus(profile.user_id);
+    } catch (err: any) {
+      setBannerNotice({
+        type: "error",
+        text: err.message || "Failed to send connection request.",
+      });
+    } finally {
+      setSendingRequest(false);
+    }
+  };
+
+  // 2. Accept incoming connection request from candidate
+  const handleAcceptCandidate = async () => {
+    if (!profile || !contactStatus?.interest_id) return;
+    setRespondingConsent(true);
+    setBannerNotice(null);
+    try {
+      await apiClient(`/interests/${contactStatus.interest_id}/accept`, { method: "PATCH" });
+      setBannerNotice({
+        type: "success",
+        text: `Connection accepted! Mutual consent is established. You can now chat and unlock verified contact details.`,
+      });
+      await refreshStatus(profile.user_id);
+    } catch (err: any) {
+      setBannerNotice({
+        type: "error",
+        text: err.message || "Failed to accept connection.",
+      });
+    } finally {
+      setRespondingConsent(false);
+    }
+  };
+
+  // 3. Decline incoming connection request
+  const handleDeclineCandidate = async () => {
+    if (!profile || !contactStatus?.interest_id) return;
+    setRespondingConsent(true);
+    setBannerNotice(null);
+    try {
+      await apiClient(`/interests/${contactStatus.interest_id}/decline`, { method: "PATCH" });
+      setBannerNotice({
+        type: "success",
+        text: `Connection request declined.`,
+      });
+      await refreshStatus(profile.user_id);
+    } catch (err: any) {
+      setBannerNotice({
+        type: "error",
+        text: err.message || "Failed to decline connection.",
+      });
+    } finally {
+      setRespondingConsent(false);
+    }
+  };
+
+  // 4. Reveal contact details using 1 credit (Mutual Consent Required)
   const handleRevealContact = async () => {
     if (!profile) return;
     setRevealing(true);
+    setBannerNotice(null);
     try {
       const res = await apiClient<any>(`/contacts/${profile.user_id}/reveal`, { method: "POST" });
-      setContactData({ phone: res.phone_number, email: res.email });
-      alert("Verified contact details unlocked!");
+      setContactStatus((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_revealed: true,
+              phone_number: res.phone_number,
+              email: res.email,
+              contact_credits_remaining: res.contact_credits_remaining,
+            }
+          : null
+      );
+      setBannerNotice({
+        type: "success",
+        text: "Verified phone number and email unlocked under mutual consent!",
+      });
     } catch (err: any) {
-      alert(err.message || "Could not reveal contact details. Please upgrade your plan.");
+      setBannerNotice({
+        type: "error",
+        text: err.message || "Could not reveal contact details. Check consent status and remaining credits.",
+      });
     } finally {
       setRevealing(false);
     }
+  };
+
+  // Copy to clipboard helper
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2500);
   };
 
   if (loading) return <LoadingSpinner text="Retrieving candidate portfolio…" />;
@@ -86,7 +200,7 @@ export default function ProfileDetailPage() {
         </div>
         <h2 className="text-xl font-bold font-royal text-gray-900">Sign In to View Portfolio</h2>
         <p className="text-xs text-gray-500 leading-relaxed">
-          Full matrimonial profiles and verification badges are exclusively visible to authenticated members.
+          Full matrimonial profiles, verification badges, and mutual-consent contact sharing are exclusively visible to authenticated members.
         </p>
         <Link href="/login" className="block">
           <Button variant="primary" size="lg" className="w-full">
@@ -126,8 +240,35 @@ export default function ProfileDetailPage() {
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Search Results
       </Link>
 
+      {/* Banner Feedback Notice */}
+      {bannerNotice && (
+        <div
+          className={`p-4 rounded-2xl flex items-start gap-3 text-xs leading-relaxed border ${
+            bannerNotice.type === "success"
+              ? "bg-emerald-50 text-emerald-900 border-emerald-200"
+              : "bg-rose-50 text-rose-900 border-rose-200"
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          {bannerNotice.type === "success" ? (
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          )}
+          <span className="flex-1 font-medium">{bannerNotice.text}</span>
+          <button
+            onClick={() => setBannerNotice(null)}
+            className="text-gray-400 hover:text-gray-700 font-bold ml-2 text-sm leading-none"
+            aria-label="Dismiss notice"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Portrait Folio & Direct Actions */}
+        {/* Left Column: Portrait Folio & Mutual Consent Direct Actions */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col items-center text-center relative overflow-hidden">
             {/* Watermarked Portrait */}
@@ -157,39 +298,177 @@ export default function ProfileDetailPage() {
               </div>
             )}
 
-            {/* Action Buttons Panel */}
+            {/* Mutual Consent & Contact Sharing Action Center */}
             <div className="w-full space-y-3 pt-6 border-t border-gray-100 mt-6">
-              <Button
-                variant={interestSent ? "secondary" : "primary"}
-                size="lg"
-                className="w-full"
-                onClick={handleSendInterest}
-                disabled={interestSent}
-              >
-                <Heart className="w-4 h-4 mr-2" />
-                {interestSent ? "Interest Sent ✓" : "Send Express Interest"}
-              </Button>
+              {/* 1. If Contact is Already Revealed (Cache / Permanent Unlock) */}
+              {contactStatus?.is_revealed && contactStatus.phone_number ? (
+                <div className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl text-left space-y-3 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      Verified Contact (Consent Granted)
+                    </p>
+                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                      Unlocked ✓
+                    </span>
+                  </div>
 
-              {contactData ? (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-left space-y-1">
-                  <p className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                    <CheckCircle className="w-4 h-4 text-emerald-600" />
-                    Verified Contact Details Unlocked:
+                  <div className="space-y-2 pt-1 border-t border-emerald-200/60">
+                    <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-emerald-100 text-xs">
+                      <div className="flex items-center gap-2 text-gray-800 font-mono font-semibold">
+                        <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                        {contactStatus.phone_number}
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(contactStatus.phone_number!, "phone")}
+                        className="text-[11px] text-gray-500 hover:text-emerald-700 flex items-center gap-1 font-medium transition"
+                        title="Copy Phone Number"
+                      >
+                        {copiedField === "phone" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        {copiedField === "phone" ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-emerald-100 text-xs">
+                      <div className="flex items-center gap-2 text-gray-700 font-mono truncate max-w-[200px]">
+                        <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="truncate">{contactStatus.email}</span>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(contactStatus.email!, "email")}
+                        className="text-[11px] text-gray-500 hover:text-emerald-700 flex items-center gap-1 font-medium transition shrink-0 ml-2"
+                        title="Copy Email Address"
+                      >
+                        {copiedField === "email" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        {copiedField === "email" ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Link href="/chat" className="block pt-1">
+                    <Button variant="primary" size="sm" className="w-full">
+                      <MessageSquare className="w-3.5 h-3.5 mr-1.5" /> Start Direct Chat
+                    </Button>
+                  </Link>
+                </div>
+              ) : /* 2. If Mutual Consent is Established (ACCEPTED) but Contact Not Yet Unlocked */
+              contactStatus?.consent_status === "ACCEPTED" ? (
+                <div className="p-4 bg-rose-50/80 border border-rose-200 rounded-2xl text-left space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-brand-900 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Mutual Consent Confirmed ✓
+                    </span>
+                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                      Accepted
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-600 leading-snug">
+                    Both parties have mutually agreed to connect! You can now spend 1 contact credit to unlock verified phone and email details.
                   </p>
-                  <p className="text-sm font-mono text-gray-800 font-semibold">{contactData.phone}</p>
-                  <p className="text-xs font-mono text-gray-600">{contactData.email}</p>
+                  <Button
+                    variant="gold"
+                    size="md"
+                    className="w-full font-bold shadow-sm"
+                    onClick={handleRevealContact}
+                    isLoading={revealing}
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Unlock Verified Contact (1 Credit)
+                  </Button>
+                  <p className="text-[10px] text-center text-gray-500 font-mono">
+                    {contactStatus.contact_credits_remaining} contact credits currently available
+                  </p>
+                </div>
+              ) : /* 3. If Outgoing Request Sent & Pending Candidate Acceptance */
+              contactStatus?.consent_status === "PENDING" && contactStatus.direction === "SENT" ? (
+                <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl text-left space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-amber-600" />
+                      Contact Sharing Pending
+                    </span>
+                    <span className="text-[10px] font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                      Awaiting Response
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-amber-900/90 leading-snug">
+                    Your connection &amp; contact sharing request was sent to {profile.first_name}. To protect member privacy, contact details can only be unlocked once {profile.first_name} accepts your request in their Inbox.
+                  </p>
+                  <div className="text-[11px] font-medium text-amber-800 bg-amber-100/70 p-2 rounded-xl text-center">
+                    ⏳ Waiting for candidate acceptance
+                  </div>
+                </div>
+              ) : /* 4. If Candidate Sent Request to Current User (Incoming Consent Invitation) */
+              contactStatus?.consent_status === "PENDING" && contactStatus.direction === "RECEIVED" ? (
+                <div className="p-4 bg-blue-50/90 border border-blue-200 rounded-2xl text-left space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                      <Heart className="w-4 h-4 text-blue-600" />
+                      Connection Request Received!
+                    </span>
+                    <span className="text-[10px] font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                      Action Needed
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-blue-900 leading-snug">
+                    {profile.first_name} sent you an Express Interest. Accept to establish mutual consent, unlock private messaging, and permit contact sharing.
+                  </p>
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="flex-1"
+                      onClick={handleAcceptCandidate}
+                      isLoading={respondingConsent}
+                    >
+                      <CheckCircle className="w-3.5 h-3.5 mr-1" /> Accept &amp; Grant Consent
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleDeclineCandidate}
+                      disabled={respondingConsent}
+                    >
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              ) : /* 5. If Connection was Declined */
+              contactStatus?.consent_status === "DECLINED" ? (
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl text-left space-y-1">
+                  <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                    <Lock className="w-4 h-4 text-gray-400" />
+                    Connection Declined
+                  </p>
+                  <p className="text-[11px] text-gray-500">
+                    Contact details cannot be shared because this connection proposal was declined.
+                  </p>
                 </div>
               ) : (
-                <Button
-                  variant="gold"
-                  size="md"
-                  className="w-full"
-                  onClick={handleRevealContact}
-                  isLoading={revealing}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Unlock Contact Number (1 Credit)
-                </Button>
+                /* 6. Default: Not Requested Yet (Prompt 2-Way Consent) */
+                <div className="p-4 bg-gradient-to-b from-gray-50 to-rose-50/30 border border-rose-100 rounded-2xl text-left space-y-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                    <Lock className="w-3.5 h-3.5 text-brand-600" />
+                    Protected by 2-Way Mutual Consent
+                  </div>
+                  <p className="text-[11px] text-gray-600 leading-relaxed">
+                    Under Bandham&apos;s privacy protocol, verified contact numbers and emails are never shared unilaterally. Both members must accept the connection before phone numbers can be unlocked.
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full shadow-sm"
+                    onClick={handleRequestContactOrInterest}
+                    isLoading={sendingRequest}
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    Send Interest &amp; Request Contact
+                  </Button>
+                  <p className="text-[10px] text-center text-gray-400">
+                    Once {profile.first_name} accepts, contact details unlock using 1 subscription credit.
+                  </p>
+                </div>
               )}
             </div>
           </div>

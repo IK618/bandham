@@ -10,7 +10,8 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from backend.app.core.database import Base, get_db
+from backend.app.core.database import get_db
+from backend.app.models.base import Base
 from backend.app.main import app
 
 # Test SQLite in-memory database URL

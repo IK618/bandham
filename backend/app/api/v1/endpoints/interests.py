@@ -207,8 +207,8 @@ async def accept_interest(
     recip_name = recip_prof.first_name if recip_prof else "Your match"
     db.add(Notification(
         user_id=interest.sender_id,
-        title="Interest Accepted!",
-        message=f"{recip_name} accepted your interest. You can now start chatting!",
+        title="Interest & Contact Consent Accepted!",
+        message=f"{recip_name} accepted your interest. Mutual consent is established! You can now chat and unlock verified contact details.",
         notification_type=NotificationTypeEnum.INTEREST_ACCEPTED,
         reference_link=f"/chat"
     ))

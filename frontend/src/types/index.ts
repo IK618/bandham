@@ -49,6 +49,18 @@ export interface ProfileDetail extends ProfileCard {
   has_contact_revealed: boolean;
 }
 
+export interface ContactStatusResponse {
+  target_user_id: string;
+  consent_status: "NOT_REQUESTED" | "PENDING" | "ACCEPTED" | "DECLINED";
+  is_revealed: boolean;
+  phone_number?: string | null;
+  email?: string | null;
+  can_reveal: boolean;
+  direction?: "SENT" | "RECEIVED" | null;
+  interest_id?: string | null;
+  contact_credits_remaining: number;
+}
+
 export interface PartnerPreference {
   id: string;
   user_id: string;
