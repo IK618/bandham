@@ -33,7 +33,7 @@ export default function EditProfilePage() {
   const [maritalStatus, setMaritalStatus] = useState("NEVER_MARRIED");
   const [religion, setReligion] = useState("Hindu");
   const [motherTongue, setMotherTongue] = useState("Hindi");
-  const [community, setCommunity] = useState("General");
+  const [community, setCommunity] = useState("");
   const [gotra, setGotra] = useState("");
   const [manglik, setManglik] = useState("DONT_KNOW");
 
@@ -68,7 +68,7 @@ export default function EditProfilePage() {
           setMaritalStatus(prof.marital_status || "NEVER_MARRIED");
           setReligion(prof.religion || "Hindu");
           setMotherTongue(prof.mother_tongue || "Hindi");
-          setCommunity(prof.community || "General");
+          setCommunity(prof.community || "");
           setGotra(prof.gotra || "");
           setManglik(prof.manglik || "DONT_KNOW");
           setHighestEducation(prof.highest_education || "Bachelors");
@@ -119,9 +119,9 @@ export default function EditProfilePage() {
         marital_status: maritalStatus,
         religion: religion || "Hindu",
         mother_tongue: motherTongue || "Hindi",
-        community: community.trim() || "General",
+        community: community.trim() || null,
         gotra: gotra.trim() || null,
-        manglik,
+        manglik: manglik || "DONT_KNOW",
         highest_education: highestEducation || "Bachelors",
         education_field: educationField.trim() || "General",
         college_name: collegeName.trim() || null,
@@ -326,38 +326,47 @@ export default function EditProfilePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Community / Caste</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-gray-700">Community / Caste</label>
+                <span className="text-[10px] text-gray-400 font-medium bg-gray-100 px-1.5 py-0.5 rounded">Optional</span>
+              </div>
               <input
                 type="text"
                 value={community}
                 onChange={(e) => setCommunity(e.target.value)}
-                placeholder="e.g. Brahmin, Agarwal, Syed"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+                placeholder="Optional (e.g. Brahmin, Agarwal, or leave blank)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Gotra</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-gray-700">Gotra</label>
+                <span className="text-[10px] text-gray-400 font-medium bg-gray-100 px-1.5 py-0.5 rounded">Optional</span>
+              </div>
               <input
                 type="text"
                 value={gotra}
                 onChange={(e) => setGotra(e.target.value)}
-                placeholder="e.g. Kashyap, Vashisht"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+                placeholder="Optional (e.g. Kashyap, or leave blank)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Manglik Status</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-gray-700">Manglik Status</label>
+                <span className="text-[10px] text-gray-400 font-medium bg-gray-100 px-1.5 py-0.5 rounded">Optional</span>
+              </div>
               <select
                 value={manglik}
                 onChange={(e) => setManglik(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 text-sm"
               >
+                <option value="DONT_KNOW">Doesn&apos;t Matter / Don&apos;t Know</option>
                 <option value="NO">Non-Manglik (No)</option>
                 <option value="YES">Manglik (Yes)</option>
                 <option value="ANGSHIK">Angshik / Partial Manglik</option>
-                <option value="DONT_KNOW">Don&apos;t Know</option>
               </select>
             </div>
           </div>

@@ -32,10 +32,10 @@ class ProfileBase(BaseModel):
 
     religion: str = Field(default="Hindu", max_length=64)
     mother_tongue: str = Field(default="Hindi", max_length=64)
-    community: str = Field(default="General", max_length=64)
+    community: Optional[str] = Field(default=None, max_length=64)
     sub_community: Optional[str] = None
     gotra: Optional[str] = None
-    manglik: ManglikEnum = ManglikEnum.DONT_KNOW
+    manglik: Optional[ManglikEnum] = ManglikEnum.DONT_KNOW
 
     highest_education: str = Field(default="Bachelors", max_length=128)
     education_field: str = Field(default="General", max_length=128)
@@ -60,10 +60,24 @@ class ProfileBase(BaseModel):
 
     @field_validator("community", mode="before")
     @classmethod
-    def sanitize_community(cls, v: Optional[str]) -> str:
-        if not v or not str(v).strip() or len(str(v).strip()) < 2:
-            return "General"
+    def sanitize_community(cls, v: Optional[str]) -> Optional[str]:
+        if not v or not str(v).strip():
+            return None
         return str(v).strip()
+
+    @field_validator("gotra", mode="before")
+    @classmethod
+    def sanitize_gotra(cls, v: Optional[str]) -> Optional[str]:
+        if not v or not str(v).strip():
+            return None
+        return str(v).strip()
+
+    @field_validator("manglik", mode="before")
+    @classmethod
+    def sanitize_manglik(cls, v: object) -> ManglikEnum:
+        if not v:
+            return ManglikEnum.DONT_KNOW
+        return v
 
     @field_validator("religion", "mother_tongue", "highest_education", "education_field", "occupation", "residence_city", "residence_state", mode="before")
     @classmethod
@@ -138,7 +152,7 @@ class ProfilePublicCard(BaseModel):
     height_cm: int
     marital_status: MaritalStatusEnum
     religion: str
-    community: str
+    community: Optional[str] = None
     mother_tongue: str
     highest_education: str
     occupation: str
@@ -146,7 +160,7 @@ class ProfilePublicCard(BaseModel):
     residence_city: str
     residence_state: str
     diet: DietEnum
-    manglik: ManglikEnum
+    manglik: Optional[ManglikEnum] = ManglikEnum.DONT_KNOW
     bio_narrative: str
     thumbnail_url: Optional[str] = None
     is_photo_blurred: bool = False

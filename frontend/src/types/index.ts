@@ -17,7 +17,7 @@ export interface ProfileCard {
   height_cm: number;
   marital_status: MaritalStatus;
   religion: string;
-  community: string;
+  community?: string;
   mother_tongue: string;
   highest_education: string;
   occupation: string;
@@ -25,7 +25,7 @@ export interface ProfileCard {
   residence_city: string;
   residence_state: string;
   diet: Diet;
-  manglik: ManglikStatus;
+  manglik?: ManglikStatus;
   bio_narrative: string;
   thumbnail_url?: string;
   is_photo_blurred: boolean;

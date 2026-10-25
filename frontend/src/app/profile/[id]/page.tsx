@@ -521,11 +521,15 @@ export default function ProfileDetailPage() {
               </div>
               <div>
                 <span className="text-gray-400 block">Community / Gotra</span>
-                <span className="font-semibold text-gray-800 text-sm">{profile.community || "General"} {profile.gotra ? `(${profile.gotra})` : ""}</span>
+                <span className="font-semibold text-gray-800 text-sm">
+                  {profile.community || "Not Specified"}{profile.gotra ? ` (${profile.gotra})` : ""}
+                </span>
               </div>
               <div>
                 <span className="text-gray-400 block">Manglik Status</span>
-                <span className="font-semibold text-gray-800 text-sm">{profile.manglik || "Don't Know"}</span>
+                <span className="font-semibold text-gray-800 text-sm">
+                  {profile.manglik === "DONT_KNOW" ? "Doesn't Matter / N/A" : profile.manglik === "YES" ? "Manglik" : profile.manglik === "NO" ? "Non-Manglik" : profile.manglik === "ANGSHIK" ? "Anshik Manglik" : "Not Specified"}
+                </span>
               </div>
             </div>
           </div>

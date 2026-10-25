@@ -118,7 +118,7 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
           </div>
 
           <p className="text-xs text-gray-600 mb-3 font-medium">
-            <span className="capitalize font-bold text-gray-800">{profile.gender ? profile.gender.toLowerCase() : ""}</span> • {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}&apos;{Math.round((profile.height_cm % 30.48) / 2.54)}&quot; • {profile.religion}, {profile.community}
+            <span className="capitalize font-bold text-gray-800">{profile.gender ? profile.gender.toLowerCase() : ""}</span> • {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}&apos;{Math.round((profile.height_cm % 30.48) / 2.54)}&quot; • {profile.religion}{profile.community ? `, ${profile.community}` : ""}
           </p>
 
           <div className="space-y-1.5 text-xs text-gray-600 mb-4">

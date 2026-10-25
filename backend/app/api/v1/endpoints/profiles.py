@@ -240,8 +240,10 @@ async def update_my_profile(
     update_data = payload.model_dump(exclude_unset=True)
     for field, val in update_data.items():
         if isinstance(val, str) and not val.strip():
-            if field in ["community", "religion", "mother_tongue", "highest_education", "education_field", "occupation", "residence_city", "residence_state"]:
-                default_val = "General" if field in ["community", "education_field"] else (getattr(profile, field) or "General")
+            if field in ["community", "gotra", "sub_community", "college_name"]:
+                setattr(profile, field, None)
+            elif field in ["religion", "mother_tongue", "highest_education", "education_field", "occupation", "residence_city", "residence_state"]:
+                default_val = "General" if field == "education_field" else (getattr(profile, field) or "General")
                 setattr(profile, field, default_val)
             elif field == "bio_narrative":
                 setattr(profile, field, getattr(profile, field) or "Looking for an understanding, caring, and compatible life partner.")
@@ -250,10 +252,10 @@ async def update_my_profile(
         elif val is not None:
             setattr(profile, field, val)
 
-    # Calculate profile completeness score
+    # Calculate profile completeness score (caste, gotra, manglik are optional and not penalized)
     fields_to_check = [
         profile.first_name, profile.last_name, profile.date_of_birth, profile.height_cm,
-        profile.marital_status, profile.religion, profile.mother_tongue, profile.community,
+        profile.marital_status, profile.religion, profile.mother_tongue,
         profile.highest_education, profile.occupation, profile.annual_income_bracket,
         profile.residence_city, profile.bio_narrative, profile.family_type
     ]

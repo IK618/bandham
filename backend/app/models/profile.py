@@ -122,7 +122,7 @@ class Profile(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     # Religion & Community
     religion: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     mother_tongue: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    community: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    community: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     sub_community: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     gotra: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     manglik: Mapped[ManglikEnum] = mapped_column(
