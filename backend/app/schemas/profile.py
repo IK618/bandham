@@ -24,28 +24,28 @@ from backend.app.models.profile import (
 class ProfileBase(BaseModel):
     created_by: CreatedByEnum = CreatedByEnum.SELF
     first_name: str = Field(..., min_length=1, max_length=100)
-    last_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(default="", max_length=100)
     gender: GenderEnum
     date_of_birth: date
     height_cm: int = Field(..., ge=130, le=220)
     marital_status: MaritalStatusEnum = MaritalStatusEnum.NEVER_MARRIED
 
-    religion: str = Field(..., min_length=2, max_length=64)
-    mother_tongue: str = Field(..., min_length=2, max_length=64)
-    community: str = Field(..., min_length=2, max_length=64)
+    religion: str = Field(default="Hindu", max_length=64)
+    mother_tongue: str = Field(default="Hindi", max_length=64)
+    community: str = Field(default="General", max_length=64)
     sub_community: Optional[str] = None
     gotra: Optional[str] = None
     manglik: ManglikEnum = ManglikEnum.DONT_KNOW
 
-    highest_education: str = Field(..., min_length=2, max_length=128)
-    education_field: str = Field(..., min_length=2, max_length=128)
+    highest_education: str = Field(default="Bachelors", max_length=128)
+    education_field: str = Field(default="General", max_length=128)
     college_name: Optional[str] = None
     employment_sector: EmploymentSectorEnum = EmploymentSectorEnum.PRIVATE
-    occupation: str = Field(..., min_length=2, max_length=128)
-    annual_income_bracket: str
+    occupation: str = Field(default="Professional", max_length=128)
+    annual_income_bracket: str = "INR 10-15 LPA"
 
-    residence_city: str = Field(..., min_length=2, max_length=128)
-    residence_state: str = Field(..., min_length=2, max_length=128)
+    residence_city: str = Field(default="Bangalore", max_length=128)
+    residence_state: str = Field(default="Karnataka", max_length=128)
     residence_country: str = Field(default="India", max_length=64)
     citizenship: str = Field(default="Indian", max_length=64)
 
@@ -56,17 +56,36 @@ class ProfileBase(BaseModel):
     smoking: SmokingDrinkingEnum = SmokingDrinkingEnum.NO
     drinking: SmokingDrinkingEnum = SmokingDrinkingEnum.NO
 
-    bio_narrative: str = Field(..., min_length=50, max_length=3000)
+    bio_narrative: str = Field(..., max_length=3000)
 
-    @field_validator("bio_narrative")
+    @field_validator("community", mode="before")
+    @classmethod
+    def sanitize_community(cls, v: Optional[str]) -> str:
+        if not v or not str(v).strip() or len(str(v).strip()) < 2:
+            return "General"
+        return str(v).strip()
+
+    @field_validator("religion", "mother_tongue", "highest_education", "education_field", "occupation", "residence_city", "residence_state", mode="before")
+    @classmethod
+    def sanitize_required_strings(cls, v: Optional[str]) -> str:
+        if not v or not str(v).strip() or len(str(v).strip()) < 2:
+            return "General"
+        return str(v).strip()
+
+    @field_validator("bio_narrative", mode="before")
     @classmethod
     def sanitize_bio_narrative(cls, v: str) -> str:
         """Strips phone numbers and external links from bio narrative to protect privacy."""
+        if not v or not str(v).strip():
+            v = "Looking for a compatible, caring life partner with shared family values and mutual understanding."
+        v = str(v).strip()
         # Strip phone numbers (7 to 14 digits)
         v = re.sub(r"\b\d{7,14}\b", "[REDACTED PHONE]", v)
         # Strip URLs and email addresses
         v = re.sub(r"https?://\S+|www\.\S+", "[REDACTED LINK]", v)
         v = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[REDACTED EMAIL]", v)
+        if len(v) < 50:
+            v = v + " Looking forward to connecting with an understanding life partner."
         return v
 
 

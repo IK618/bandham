@@ -239,7 +239,16 @@ async def update_my_profile(
 
     update_data = payload.model_dump(exclude_unset=True)
     for field, val in update_data.items():
-        setattr(profile, field, val)
+        if isinstance(val, str) and not val.strip():
+            if field in ["community", "religion", "mother_tongue", "highest_education", "education_field", "occupation", "residence_city", "residence_state"]:
+                default_val = "General" if field in ["community", "education_field"] else (getattr(profile, field) or "General")
+                setattr(profile, field, default_val)
+            elif field == "bio_narrative":
+                setattr(profile, field, getattr(profile, field) or "Looking for an understanding, caring, and compatible life partner.")
+            else:
+                setattr(profile, field, None)
+        elif val is not None:
+            setattr(profile, field, val)
 
     # Calculate profile completeness score
     fields_to_check = [

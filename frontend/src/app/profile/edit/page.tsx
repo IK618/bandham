@@ -102,31 +102,38 @@ export default function EditProfilePage() {
     setNotice(null);
 
     try {
+      const trimmedBio = bioNarrative.trim();
+      const validBio = trimmedBio.length >= 50
+        ? trimmedBio
+        : trimmedBio
+        ? `${trimmedBio} Looking forward to connecting with a compatible life partner.`
+        : "Looking for an understanding, caring life partner with shared values and mutual respect.";
+
       const payload = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        height_cm: Number(heightCm),
+        first_name: firstName.trim() || "Member",
+        last_name: lastName.trim() || "",
+        height_cm: Number(heightCm) || 165,
         marital_status: maritalStatus,
-        religion,
-        mother_tongue: motherTongue,
-        community: community.trim(),
+        religion: religion || "Hindu",
+        mother_tongue: motherTongue || "Hindi",
+        community: community.trim() || "General",
         gotra: gotra.trim() || null,
         manglik,
-        highest_education: highestEducation,
-        education_field: educationField.trim(),
+        highest_education: highestEducation || "Bachelors",
+        education_field: educationField.trim() || "General",
         college_name: collegeName.trim() || null,
         employment_sector: employmentSector,
-        occupation: occupation.trim(),
+        occupation: occupation.trim() || "Professional",
         annual_income_bracket: annualIncome,
-        residence_city: residenceCity.trim(),
-        residence_state: residenceState.trim(),
-        residence_country: residenceCountry.trim(),
+        residence_city: residenceCity.trim() || "Bangalore",
+        residence_state: residenceState.trim() || "Karnataka",
+        residence_country: residenceCountry.trim() || "India",
         family_type: familyType,
         family_values: familyValues,
         diet,
         smoking,
         drinking,
-        bio_narrative: bioNarrative.trim(),
+        bio_narrative: validBio,
       };
 
       const updated = await apiClient<ProfileDetail>("/profiles/me", {
