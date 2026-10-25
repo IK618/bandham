@@ -48,6 +48,7 @@ htmlcov/
 *.db
 minio-data/
 postgres-data/
+*.zip
 redis-data/
 
 # Environment Variables & Secrets
