@@ -81,7 +81,7 @@ async def get_daily_matches(
                 residence_state=p.residence_state,
                 diet=p.diet,
                 manglik=p.manglik,
-                bio_narrative=p.bio_narrative[:160] + "..." if len(p.bio_narrative) > 160 else p.bio_narrative,
+                bio_narrative=((p.bio_narrative or "")[:160] + "...") if len(p.bio_narrative or "") > 160 else (p.bio_narrative or ""),
                 thumbnail_url=f"photos/user_{str(p.user_id)[:8]}_thumb.webp",
                 is_photo_blurred=False,
                 compatibility_score=score

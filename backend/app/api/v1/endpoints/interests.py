@@ -45,7 +45,7 @@ def profile_to_card(p: Profile) -> ProfilePublicCard:
         residence_state=p.residence_state,
         diet=p.diet,
         manglik=p.manglik,
-        bio_narrative=p.bio_narrative[:120] + "..." if len(p.bio_narrative) > 120 else p.bio_narrative,
+        bio_narrative=((p.bio_narrative or "")[:120] + "...") if len(p.bio_narrative or "") > 120 else (p.bio_narrative or ""),
         thumbnail_url=f"photos/user_{str(p.user_id)[:8]}_thumb.webp"
     )
 

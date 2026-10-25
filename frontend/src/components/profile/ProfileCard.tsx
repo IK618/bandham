@@ -85,8 +85,9 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
         {/* Shortlist Star Button Top Left */}
         <button
           onClick={handleToggleShortlist}
-          className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-sm transition-all ${shortlisted ? "bg-amber-500 text-white" : "bg-white/80 text-gray-600 hover:text-amber-500"}`}
+          className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${shortlisted ? "bg-amber-500 text-white" : "bg-white/80 text-gray-600 hover:text-amber-500"}`}
           title={shortlisted ? "Remove from Shortlist" : "Add to Shortlist"}
+          aria-label={shortlisted ? `Remove ${profile.first_name} from Shortlist` : `Add ${profile.first_name} to Shortlist`}
         >
           <Star className={`w-4 h-4 ${shortlisted ? "fill-white" : ""}`} />
         </button>

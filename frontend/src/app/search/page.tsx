@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Search, Filter, RotateCcw } from "lucide-react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Search, RotateCcw } from "lucide-react";
 import { ProfileCard as ProfileCardType } from "@/types";
 import { ProfileCard } from "@/components/profile/ProfileCard";
 import { Button } from "@/components/ui/Button";
@@ -9,41 +10,89 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { apiClient } from "@/lib/api";
 
-export default function SearchPage() {
+function SearchContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [profiles, setProfiles] = useState<ProfileCardType[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filter States
+  // Filter States initialized from URL params if present
   const [gender, setGender] = useState("");
   const [religion, setReligion] = useState("");
   const [city, setCity] = useState("");
   const [diet, setDiet] = useState("");
   const [keyword, setKeyword] = useState("");
 
-  const fetchResults = async () => {
+  const fetchResults = async (customFilters?: {
+    gender?: string;
+    religion?: string;
+    city?: string;
+    diet?: string;
+    keyword?: string;
+  }) => {
     setLoading(true);
     try {
+      const g = customFilters?.gender !== undefined ? customFilters.gender : gender;
+      const r = customFilters?.religion !== undefined ? customFilters.religion : religion;
+      const c = customFilters?.city !== undefined ? customFilters.city : city;
+      const d = customFilters?.diet !== undefined ? customFilters.diet : diet;
+      const k = customFilters?.keyword !== undefined ? customFilters.keyword : keyword;
+
       const data = await apiClient<ProfileCardType[]>("/profiles", {
         params: {
-          gender: gender || undefined,
-          religion: religion || undefined,
-          city: city || undefined,
-          diet: diet || undefined,
-          keyword: keyword || undefined,
+          gender: g || undefined,
+          religion: r || undefined,
+          city: c || undefined,
+          diet: d || undefined,
+          keyword: k || undefined,
           limit: 24,
         },
       });
       setProfiles(data);
     } catch (err: any) {
-      console.error(err);
+      console.error("Search query failed:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  // Hydrate filters from URL search params on mount or when params change
   useEffect(() => {
+    const urlGender = searchParams.get("gender") || "";
+    const urlReligion = searchParams.get("religion") || "";
+    const urlCity = searchParams.get("city") || "";
+    const urlDiet = searchParams.get("diet") || "";
+    const urlKeyword = searchParams.get("keyword") || searchParams.get("mother_tongue") || "";
+
+    setGender(urlGender);
+    setReligion(urlReligion);
+    setCity(urlCity);
+    setDiet(urlDiet);
+    setKeyword(urlKeyword);
+
+    fetchResults({
+      gender: urlGender,
+      religion: urlReligion,
+      city: urlCity,
+      diet: urlDiet,
+      keyword: urlKeyword,
+    });
+  }, [searchParams]);
+
+  const handleApplyFilters = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const query = new URLSearchParams();
+    if (gender) query.set("gender", gender);
+    if (religion) query.set("religion", religion);
+    if (city) query.set("city", city);
+    if (diet) query.set("diet", diet);
+    if (keyword) query.set("keyword", keyword);
+
+    const queryString = query.toString();
+    router.replace(queryString ? `/search?${queryString}` : "/search");
     fetchResults();
-  }, []);
+  };
 
   const handleReset = () => {
     setGender("");
@@ -51,7 +100,14 @@ export default function SearchPage() {
     setCity("");
     setDiet("");
     setKeyword("");
-    fetchResults();
+    router.replace("/search");
+    fetchResults({
+      gender: "",
+      religion: "",
+      city: "",
+      diet: "",
+      keyword: "",
+    });
   };
 
   return (
@@ -65,8 +121,8 @@ export default function SearchPage() {
         </p>
       </div>
 
-      {/* Filter Control Bar */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+      {/* Filter Control Form */}
+      <form onSubmit={handleApplyFilters} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
           <div>
             <label className="block font-semibold text-gray-700 mb-1">Gender</label>
@@ -101,7 +157,7 @@ export default function SearchPage() {
             <label className="block font-semibold text-gray-700 mb-1">City / Region</label>
             <input
               type="text"
-              placeholder="e.g. Bangalore"
+              placeholder="e.g. Bangalore, Mumbai"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
@@ -127,7 +183,7 @@ export default function SearchPage() {
             <label className="block font-semibold text-gray-700 mb-1">Keyword (Bio / Job)</label>
             <input
               type="text"
-              placeholder="e.g. Architect, CA"
+              placeholder="e.g. Architect, CA, Tech"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
@@ -136,14 +192,14 @@ export default function SearchPage() {
         </div>
 
         <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
-          <Button variant="outline" size="sm" onClick={handleReset}>
+          <Button type="button" variant="outline" size="sm" onClick={handleReset}>
             <RotateCcw className="w-3.5 h-3.5 mr-1" /> Reset
           </Button>
-          <Button variant="primary" size="sm" onClick={fetchResults}>
+          <Button type="submit" variant="primary" size="sm">
             <Search className="w-3.5 h-3.5 mr-1" /> Apply Filters
           </Button>
         </div>
-      </div>
+      </form>
 
       {/* Search Results Grid */}
       {loading ? (
@@ -163,5 +219,13 @@ export default function SearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="Loading search directory…" />}>
+      <SearchContent />
+    </Suspense>
   );
 }

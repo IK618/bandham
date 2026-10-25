@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MessageSquare, Send, CheckCheck, Clock } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { MessageSquare, Send, CheckCheck } from "lucide-react";
 import { ConversationItem, ChatMessage } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -16,6 +16,13 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     async function loadConversations() {
       try {
@@ -25,7 +32,7 @@ export default function ChatPage() {
           setActiveConv(data[0]);
         }
       } catch (err: any) {
-        console.error(err);
+        console.error("Failed to load conversations:", err);
       } finally {
         setLoading(false);
       }
@@ -33,31 +40,54 @@ export default function ChatPage() {
     loadConversations();
   }, []);
 
+  // Poll for incoming messages every 4 seconds while active conversation is selected
   useEffect(() => {
-    async function loadMessages() {
-      if (!activeConv) return;
+    if (!activeConv) return;
+
+    const fetchMessages = async () => {
       try {
         const msgs = await apiClient<ChatMessage[]>(`/chat/conversations/${activeConv.id}/messages`);
-        setMessages(msgs);
+        setMessages((prev) => {
+          if (
+            msgs.length !== prev.length ||
+            (msgs.length > 0 && msgs[msgs.length - 1]?.id !== prev[prev.length - 1]?.id)
+          ) {
+            return msgs;
+          }
+          return prev;
+        });
       } catch (err: any) {
-        console.error(err);
+        // Silent catch for background poll
       }
-    }
-    loadMessages();
+    };
+
+    fetchMessages();
+    const pollTimer = setInterval(fetchMessages, 4000);
+    return () => clearInterval(pollTimer);
   }, [activeConv]);
+
+  // Scroll to bottom whenever messages update
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeConv || !newText.trim()) return;
+    const textToSend = newText.trim();
+    if (!activeConv || !textToSend || sending) return;
 
     setSending(true);
     try {
       const sentMsg = await apiClient<ChatMessage>(`/chat/conversations/${activeConv.id}/messages`, {
         method: "POST",
-        body: JSON.stringify({ content: newText }),
+        body: JSON.stringify({ content: textToSend }),
       });
       setMessages((prev) => [...prev, sentMsg]);
       setNewText("");
+      setTimeout(() => {
+        scrollToBottom();
+        inputRef.current?.focus();
+      }, 50);
     } catch (err: any) {
       alert(err.message || "Failed to send message.");
     } finally {
@@ -150,8 +180,8 @@ export default function ChatPage() {
               </div>
 
               {/* Chat Messages Stream */}
-              <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto">
-                <div className="text-center my-4">
+              <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[500px]">
+                <div className="text-center my-2">
                   <span className="bg-white border border-gray-200 text-gray-500 text-[11px] px-3 py-1 rounded-full shadow-2xs">
                     Messages are encrypted in transit. Please observe matrimonial decorum.
                   </span>
@@ -182,11 +212,13 @@ export default function ChatPage() {
                     </div>
                   );
                 })}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input Form */}
               <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-100 flex items-center gap-2">
                 <input
+                  ref={inputRef}
                   type="text"
                   required
                   placeholder="Type a respectful message…"
