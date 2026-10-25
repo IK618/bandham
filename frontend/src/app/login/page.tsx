@@ -121,13 +121,20 @@ export default function LoginPage() {
             <p className="text-[11px] font-semibold text-amber-900 tracking-wide uppercase text-center">
               Quick One-Click Demo Logins
             </p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => fillCredentials("ananya@bandham.local", "Ananya@12345")}
                 className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
               >
-                👰 Member
+                👰 Ananya
+              </button>
+              <button
+                type="button"
+                onClick={() => fillCredentials("rohan@bandham.local", "Rohan@12345")}
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+              >
+                🤵 Rohan
               </button>
               <button
                 type="button"
