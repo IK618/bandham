@@ -27,10 +27,12 @@ class UserRole(str, enum.Enum):
 
 class UserStatus(str, enum.Enum):
     PENDING_VERIFICATION = "PENDING_VERIFICATION"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
     ACTIVE = "ACTIVE"
     SUSPENDED = "SUSPENDED"
     DEACTIVATED = "DEACTIVATED"
     BANNED = "BANNED"
+    REJECTED = "REJECTED"
 
 
 class User(Base, UUIDPrimaryKeyMixin, TimestampMixin):

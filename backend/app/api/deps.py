@@ -95,11 +95,21 @@ async def get_current_user(
 async def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
-    """Ensures the user account is in ACTIVE status."""
-    if current_user.status == UserStatus.PENDING_VERIFICATION:
+    """Ensures the user account is fully verified and in ACTIVE status."""
+    if current_user.status in [UserStatus.PENDING_VERIFICATION, UserStatus.PENDING_APPROVAL]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account pending verification. Please verify your phone OTP to proceed."
+            detail="Your membership proposal is currently under review by our Trust & Governance committee. Matchmaking, viewing full contact details, and sending interest requests will be unlocked once an Administrator or Moderator accepts your proposal."
+        )
+    if current_user.status == UserStatus.REJECTED:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your membership proposal to join Bandham was declined by the Trust & Governance committee."
+        )
+    if current_user.status != UserStatus.ACTIVE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Account access restricted: Status is {current_user.status.value}. Please contact support."
         )
     return current_user
 

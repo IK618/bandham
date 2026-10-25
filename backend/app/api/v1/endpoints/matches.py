@@ -11,8 +11,8 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db
-from backend.app.models.user import User
-from backend.app.models.profile import Profile, GenderEnum
+from backend.app.models.user import User, UserStatus
+from backend.app.models.profile import Profile, GenderEnum, MaritalStatusEnum
 from backend.app.models.preference import PartnerPreference
 from backend.app.schemas.profile import ProfilePublicCard
 from backend.app.services.matching_service import MatchingService
@@ -28,12 +28,39 @@ async def get_daily_matches(
     db: AsyncSession = Depends(get_db)
 ):
     """Retrieves top curated recommendations scored against the user's partner preferences."""
+    if current_user.status in [UserStatus.PENDING_APPROVAL, UserStatus.PENDING_VERIFICATION, UserStatus.REJECTED]:
+        return []
+
     # Fetch user's own profile and preferences
     my_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
+    if not my_prof:
+        return []
+
     my_pref = (await db.execute(select(PartnerPreference).where(PartnerPreference.user_id == current_user.id))).scalars().first()
-    
-    if not my_pref or not my_prof:
-        raise HTTPException(status_code=400, detail="Please complete your profile and partner preferences first.")
+    if not my_pref:
+        # Auto-create default preferences so user never hits 400
+        target_gender_for_pref = GenderEnum.MALE if my_prof.gender == GenderEnum.FEMALE else GenderEnum.FEMALE
+        my_pref = PartnerPreference(
+            user_id=current_user.id,
+            min_age=21 if target_gender_for_pref == GenderEnum.FEMALE else 24,
+            max_age=32 if target_gender_for_pref == GenderEnum.FEMALE else 38,
+            min_height_cm=145 if target_gender_for_pref == GenderEnum.FEMALE else 160,
+            max_height_cm=180 if target_gender_for_pref == GenderEnum.FEMALE else 200,
+            acceptable_marital_statuses=[MaritalStatusEnum.NEVER_MARRIED],
+            acceptable_religions=[my_prof.religion or "Hindu", "Universal"],
+            acceptable_communities=[],
+            acceptable_mother_tongues=[my_prof.mother_tongue or "Hindi"],
+            acceptable_countries=["India"],
+            acceptable_cities=[],
+            min_education_level="Bachelors",
+            acceptable_employment_sectors=[],
+            min_income_bracket=None,
+            acceptable_diets=[],
+            manglik_preference=None
+        )
+        db.add(my_pref)
+        await db.commit()
+        await db.refresh(my_pref)
 
     # Target gender (opposite gender by default)
     target_gender = GenderEnum.MALE if my_prof.gender == GenderEnum.FEMALE else GenderEnum.FEMALE

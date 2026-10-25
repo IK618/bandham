@@ -62,6 +62,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user_id: str
     role: UserRole
+    status: UserStatus = UserStatus.ACTIVE
     email: str
     profile_id_display: Optional[str] = None
 

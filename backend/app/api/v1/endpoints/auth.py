@@ -13,7 +13,8 @@ from backend.app.api.deps import get_current_user, get_db
 from backend.app.core.config import settings
 from backend.app.core.security import create_access_token, create_refresh_token, get_password_hash, verify_password
 from backend.app.models.user import User, UserRole, UserStatus
-from backend.app.models.profile import Profile
+from backend.app.models.profile import Profile, GenderEnum, MaritalStatusEnum
+from backend.app.models.preference import PartnerPreference
 from backend.app.schemas.auth import (
     LoginRequest,
     RegisterRequest,
@@ -44,7 +45,7 @@ async def register_user(
         phone_number=payload.phone_number,
         password_hash=get_password_hash(payload.password),
         role=UserRole.MEMBER,
-        status=UserStatus.PENDING_VERIFICATION,
+        status=UserStatus.PENDING_APPROVAL,
         email_verified=False,
         phone_verified=False
     )
@@ -61,7 +62,7 @@ async def register_user(
         last_name=payload.last_name,
         gender=payload.gender,
         date_of_birth=datetime(1998, 1, 1).date(),  # temporary draft date
-        height_cm=165,
+        height_cm=165 if payload.gender == GenderEnum.FEMALE else 175,
         religion="Hindu",
         mother_tongue="Hindi",
         community="General",
@@ -71,11 +72,34 @@ async def register_user(
         annual_income_bracket="INR 10-15 LPA",
         residence_city="Mumbai",
         residence_state="Maharashtra",
-        bio_narrative="Profile under construction. Looking for an understanding and caring life partner.",
-        profile_completeness_pct=25,
+        bio_narrative="Membership proposal submitted to Bandham. Looking for an understanding and caring life partner.",
+        profile_completeness_pct=30,
         is_searchable=False
     )
     db.add(draft_profile)
+
+    # Initialize default partner preferences so matching never fails with 400
+    target_min_age = 21 if payload.gender == GenderEnum.MALE else 24
+    target_max_age = 32 if payload.gender == GenderEnum.MALE else 38
+    default_pref = PartnerPreference(
+        user_id=new_user.id,
+        min_age=target_min_age,
+        max_age=target_max_age,
+        min_height_cm=145 if payload.gender == GenderEnum.MALE else 160,
+        max_height_cm=180 if payload.gender == GenderEnum.MALE else 200,
+        acceptable_marital_statuses=[MaritalStatusEnum.NEVER_MARRIED],
+        acceptable_religions=["Hindu", "Jain", "Sikh", "Universal"],
+        acceptable_communities=[],
+        acceptable_mother_tongues=["Hindi"],
+        acceptable_countries=["India"],
+        acceptable_cities=[],
+        min_education_level="Bachelors",
+        acceptable_employment_sectors=[],
+        min_income_bracket=None,
+        acceptable_diets=[],
+        manglik_preference=None
+    )
+    db.add(default_pref)
     await db.commit()
     await db.refresh(new_user)
 
@@ -110,7 +134,8 @@ async def verify_otp(
         raise HTTPException(status_code=400, detail="Invalid verification code. Please try again.")
 
     user.phone_verified = True
-    user.status = UserStatus.ACTIVE
+    if user.status not in [UserStatus.ACTIVE, UserStatus.SUSPENDED, UserStatus.BANNED, UserStatus.REJECTED]:
+        user.status = UserStatus.PENDING_APPROVAL
     user.last_login_at = datetime.now(timezone.utc)
     await db.commit()
 
@@ -142,6 +167,7 @@ async def verify_otp(
         refresh_token=refresh_token,
         user_id=str(user.id),
         role=user.role,
+        status=user.status,
         email=user.email,
         profile_id_display=prof.profile_id_display if prof else None
     )
@@ -162,6 +188,12 @@ async def login(
 
     if user.status in [UserStatus.SUSPENDED, UserStatus.BANNED]:
         raise HTTPException(status_code=403, detail=f"Account is {user.status.value}. Contact support.")
+
+    if user.status == UserStatus.REJECTED:
+        raise HTTPException(
+            status_code=403,
+            detail="Your membership proposal was not approved by the Trust & Governance committee. Please contact support@bandham.com for assistance."
+        )
 
     user.last_login_at = datetime.now(timezone.utc)
     await db.commit()
@@ -193,6 +225,7 @@ async def login(
         refresh_token=refresh_token,
         user_id=str(user.id),
         role=user.role,
+        status=user.status,
         email=user.email,
         profile_id_display=prof.profile_id_display if prof else None
     )

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_current_user, get_db
+from backend.app.api.deps import get_current_active_user, get_current_user, get_db
 from backend.app.core.redis import RateLimiter
 from backend.app.models.user import User, UserRole
 from backend.app.models.profile import Profile
@@ -53,7 +53,7 @@ def profile_to_card(p: Profile) -> ProfilePublicCard:
 @router.post("", response_model=InterestResponse, status_code=status.HTTP_201_CREATED)
 async def send_interest(
     payload: InterestCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Sends an Express Interest to a candidate (subject to daily rate limits)."""

@@ -15,18 +15,30 @@ import {
   UserX,
   Lock,
   ArrowUpRight,
+  Clock,
+  XCircle,
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { apiClient } from "@/lib/api";
 
+export type AdminUserStatus =
+  | "ACTIVE"
+  | "SUSPENDED"
+  | "BANNED"
+  | "PENDING_VERIFICATION"
+  | "PENDING_APPROVAL"
+  | "REJECTED"
+  | "DEACTIVATED";
+
 interface AdminUser {
   id: string;
   email: string;
   phone_number: string;
   role: "MEMBER" | "MODERATOR" | "ADMIN";
-  status: "ACTIVE" | "SUSPENDED" | "BANNED" | "PENDING_VERIFICATION";
+  status: AdminUserStatus;
   created_at: string;
   first_name?: string;
   last_name?: string;
@@ -36,12 +48,14 @@ interface AdminUser {
 }
 
 export default function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"users" | "reports">("users");
+  const [activeTab, setActiveTab] = useState<"proposals" | "users" | "reports">("proposals");
   const [stats, setStats] = useState<any>(null);
   const [reports, setReports] = useState<any[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [proposals, setProposals] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [proposalsLoading, setProposalsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   // User Filter State
@@ -76,6 +90,18 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const fetchProposals = useCallback(async () => {
+    setProposalsLoading(true);
+    try {
+      const res = await apiClient<AdminUser[]>("/admin/proposals");
+      setProposals(res || []);
+    } catch (err) {
+      console.error("Failed to load proposals:", err);
+    } finally {
+      setProposalsLoading(false);
+    }
+  }, []);
+
   const fetchUsers = useCallback(async () => {
     setUsersLoading(true);
     try {
@@ -98,11 +124,65 @@ export default function AdminDashboardPage() {
     async function init() {
       setLoading(true);
       await fetchAdminStatsAndReports();
+      await fetchProposals();
       await fetchUsers();
       setLoading(false);
     }
     init();
-  }, [fetchUsers]);
+  }, [fetchUsers, fetchProposals]);
+
+  // Approve a pending membership proposal
+  const handleApproveProposal = async (userId: string, memberEmail: string) => {
+    setActionInProgress(userId);
+    setActionNotice(null);
+    try {
+      const res = await apiClient<any>(`/admin/proposals/${userId}/approve`, {
+        method: "POST"
+      });
+      setActionNotice({
+        type: "success",
+        text: res?.message || `Proposal for ${memberEmail} approved! Account is now active.`
+      });
+      fetchProposals();
+      fetchUsers();
+      fetchAdminStatsAndReports();
+    } catch (err: any) {
+      setActionNotice({
+        type: "error",
+        text: err.message || `Failed to approve proposal for ${memberEmail}.`
+      });
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  // Reject a pending membership proposal
+  const handleRejectProposal = async (userId: string, memberEmail: string) => {
+    if (!confirm(`Are you sure you want to decline the membership proposal for ${memberEmail}?`)) {
+      return;
+    }
+    setActionInProgress(userId);
+    setActionNotice(null);
+    try {
+      const res = await apiClient<any>(`/admin/proposals/${userId}/reject`, {
+        method: "POST"
+      });
+      setActionNotice({
+        type: "success",
+        text: res?.message || `Proposal for ${memberEmail} was declined.`
+      });
+      fetchProposals();
+      fetchUsers();
+      fetchAdminStatsAndReports();
+    } catch (err: any) {
+      setActionNotice({
+        type: "error",
+        text: err.message || `Failed to decline proposal for ${memberEmail}.`
+      });
+    } finally {
+      setActionInProgress(null);
+    }
+  };
 
   // Upgrade or Degrade User Position
   const handleRoleChange = async (userId: string, newRole: "MEMBER" | "MODERATOR" | "ADMIN", memberName: string) => {
@@ -133,7 +213,7 @@ export default function AdminDashboardPage() {
   // Block, Suspend, or Reactivate User Status
   const handleStatusChange = async (
     userId: string,
-    newStatus: "ACTIVE" | "SUSPENDED" | "BANNED",
+    newStatus: AdminUserStatus,
     memberName: string
   ) => {
     const isDestructive = newStatus === "BANNED" || newStatus === "SUSPENDED";
@@ -226,9 +306,10 @@ export default function AdminDashboardPage() {
             size="sm"
             onClick={() => {
               fetchAdminStatsAndReports();
+              fetchProposals();
               fetchUsers();
             }}
-            isLoading={usersLoading}
+            isLoading={usersLoading || proposalsLoading}
           >
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh Data
           </Button>
@@ -258,28 +339,36 @@ export default function AdminDashboardPage() {
 
       {/* Metrics Cards */}
       {stats && stats.metrics && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <div className="bg-amber-50/70 p-5 rounded-2xl border border-amber-200 shadow-sm">
+            <span className="text-xs text-amber-800 font-semibold flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" /> Pending Proposals
+            </span>
+            <p className="text-3xl font-bold font-serif text-amber-900 mt-1 tabular-nums">
+              {stats.metrics.pending_account_proposals ?? proposals.length}
+            </p>
+          </div>
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <span className="text-xs text-gray-500">Total Registered</span>
-            <p className="text-3xl font-bold font-serif text-gray-900 mt-1">
+            <p className="text-3xl font-bold font-serif text-gray-900 mt-1 tabular-nums">
               {stats.metrics.total_registered_users}
             </p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <span className="text-xs text-emerald-600 font-semibold">Active Profiles</span>
-            <p className="text-3xl font-bold font-serif text-emerald-600 mt-1">
+            <p className="text-3xl font-bold font-serif text-emerald-600 mt-1 tabular-nums">
               {stats.metrics.active_verified_members}
             </p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <span className="text-xs text-rose-600 font-semibold">Suspended / Banned</span>
-            <p className="text-3xl font-bold font-serif text-rose-600 mt-1">
+            <p className="text-3xl font-bold font-serif text-rose-600 mt-1 tabular-nums">
               {stats.metrics.suspended_members}
             </p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <span className="text-xs text-amber-600 font-semibold">Flagged Incidents</span>
-            <p className="text-3xl font-bold font-serif text-amber-600 mt-1">
+            <p className="text-3xl font-bold font-serif text-amber-600 mt-1 tabular-nums">
               {stats.metrics.pending_moderation_reports}
             </p>
           </div>
@@ -287,10 +376,21 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Primary Section Tabs */}
-      <div className="flex border-b border-gray-200 gap-4">
+      <div className="flex border-b border-gray-200 gap-4 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab("proposals")}
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] whitespace-nowrap ${
+            activeTab === "proposals"
+              ? "border-amber-600 text-amber-600"
+              : "border-transparent text-gray-500 hover:text-gray-800"
+          }`}
+        >
+          <Clock className="w-4 h-4 text-amber-500" aria-hidden="true" />
+          Pending Account Proposals ({proposals.length})
+        </button>
         <button
           onClick={() => setActiveTab("users")}
-          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] ${
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] whitespace-nowrap ${
             activeTab === "users"
               ? "border-brand-600 text-brand-600"
               : "border-transparent text-gray-500 hover:text-gray-800"
@@ -301,7 +401,7 @@ export default function AdminDashboardPage() {
         </button>
         <button
           onClick={() => setActiveTab("reports")}
-          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] ${
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] whitespace-nowrap ${
             activeTab === "reports"
               ? "border-brand-600 text-brand-600"
               : "border-transparent text-gray-500 hover:text-gray-800"
@@ -311,6 +411,98 @@ export default function AdminDashboardPage() {
           Flagged Incident Queue ({reports.length})
         </button>
       </div>
+
+      {/* Tab 0: Pending Membership Account Proposals */}
+      {activeTab === "proposals" && (
+        <div className="bg-white rounded-3xl border border-amber-200/80 shadow-sm p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg font-bold font-serif text-gray-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-500" aria-hidden="true" />
+                Pending Account Opening Proposals
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                Applicants who registered and verified phone OTP. Review and manually accept or reject their proposal to unlock full matchmaking.
+              </p>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 self-start sm:self-auto tabular-nums">
+              {proposals.length} awaiting review
+            </span>
+          </div>
+
+          {proposalsLoading ? (
+            <div className="py-12 text-center text-xs text-gray-500">Loading pending proposals…</div>
+          ) : proposals.length === 0 ? (
+            <div className="py-12 text-center space-y-2">
+              <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" aria-hidden="true" />
+              <p className="text-sm font-bold text-gray-800">All Proposals Reviewed</p>
+              <p className="text-xs text-gray-400">There are no pending account opening proposals at this time.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {proposals.map((prop) => {
+                const fullName = prop.first_name ? `${prop.first_name} ${prop.last_name || ""}`.trim() : "New Applicant";
+                const isBusy = actionInProgress === prop.id;
+                return (
+                  <div
+                    key={prop.id}
+                    className="p-5 rounded-2xl border border-amber-100 bg-amber-50/20 hover:border-amber-200 transition-[border-color,box-shadow] flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                  >
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="font-bold text-gray-900 text-sm">{fullName}</span>
+                        <span className="text-xs text-brand-700 font-semibold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                          {prop.profile_id_display || "BDN-DRAFT"}
+                        </span>
+                        {prop.gender && (
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            prop.gender === "FEMALE" ? "bg-rose-100 text-rose-800" : "bg-blue-100 text-blue-800"
+                          }`}>
+                            {prop.gender === "FEMALE" ? "Bride" : "Groom"}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                          {prop.status}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-600 flex flex-wrap gap-x-4 gap-y-1">
+                        <span>Email: <strong className="text-gray-900">{prop.email}</strong></span>
+                        <span>Phone: <strong className="text-gray-900 tabular-nums">{prop.phone_number}</strong></span>
+                        {prop.city && <span>Location: <strong className="text-gray-900">{prop.city}</strong></span>}
+                      </div>
+                      <p className="text-[11px] text-gray-400">
+                        Submitted: {new Date(prop.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-amber-100">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        disabled={isBusy}
+                        isLoading={isBusy}
+                        onClick={() => handleApproveProposal(prop.id, prop.email)}
+                        className="flex-1 md:flex-none text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        <Check className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" /> Accept Proposal
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        disabled={isBusy}
+                        onClick={() => handleRejectProposal(prop.id, prop.email)}
+                        className="flex-1 md:flex-none text-xs"
+                      >
+                        <XCircle className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" /> Decline
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tab 1: Member Census, Role Upgrade/Degrade, and Blocking */}
       {activeTab === "users" && (
@@ -352,8 +544,11 @@ export default function AdminDashboardPage() {
               >
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">Active</option>
+                <option value="PENDING_APPROVAL">Pending Approval</option>
+                <option value="PENDING_VERIFICATION">Pending Verification</option>
                 <option value="SUSPENDED">Suspended</option>
                 <option value="BANNED">Banned / Blocked</option>
+                <option value="REJECTED">Rejected</option>
               </select>
             </div>
           </div>
@@ -449,8 +644,10 @@ export default function AdminDashboardPage() {
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                               u.status === "ACTIVE"
                                 ? "bg-emerald-100 text-emerald-800"
-                                : u.status === "SUSPENDED"
+                                : u.status === "PENDING_APPROVAL" || u.status === "PENDING_VERIFICATION"
                                 ? "bg-amber-100 text-amber-800"
+                                : u.status === "SUSPENDED"
+                                ? "bg-orange-100 text-orange-800"
                                 : "bg-rose-100 text-rose-800"
                             }`}
                           >
@@ -458,7 +655,7 @@ export default function AdminDashboardPage() {
                           </span>
                         </td>
 
-                        {/* Actions (Block / Suspend / Reactivate) */}
+                        {/* Actions (Approve, Reject, Block, Suspend, Reactivate) */}
                         <td className="py-3.5 text-right space-x-1.5">
                           {u.status === "ACTIVE" ? (
                             <>
@@ -478,7 +675,29 @@ export default function AdminDashboardPage() {
                                 onClick={() => handleStatusChange(u.id, "BANNED", fullName)}
                                 className="text-[11px] py-1 px-2.5"
                               >
-                                <Ban className="w-3 h-3 mr-1" /> Block / Ban
+                                <Ban className="w-3 h-3 mr-1" aria-hidden="true" /> Block / Ban
+                              </Button>
+                            </>
+                          ) : u.status === "PENDING_APPROVAL" || u.status === "PENDING_VERIFICATION" ? (
+                            <>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                disabled={isBusy}
+                                isLoading={isBusy}
+                                onClick={() => handleApproveProposal(u.id, u.email)}
+                                className="text-[11px] py-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                              >
+                                <Check className="w-3 h-3 mr-1" aria-hidden="true" /> Accept
+                              </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                disabled={isBusy}
+                                onClick={() => handleRejectProposal(u.id, u.email)}
+                                className="text-[11px] py-1 px-2.5"
+                              >
+                                <XCircle className="w-3 h-3 mr-1" aria-hidden="true" /> Reject
                               </Button>
                             </>
                           ) : (
@@ -489,7 +708,7 @@ export default function AdminDashboardPage() {
                               onClick={() => handleStatusChange(u.id, "ACTIVE", fullName)}
                               className="text-[11px] py-1 px-2.5 bg-emerald-600 text-white hover:bg-emerald-700"
                             >
-                              <UserCheck className="w-3 h-3 mr-1" /> Reactivate / Unblock
+                              <UserCheck className="w-3 h-3 mr-1" aria-hidden="true" /> Reactivate / Unblock
                             </Button>
                           )}
                         </td>
