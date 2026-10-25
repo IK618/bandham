@@ -55,7 +55,7 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col group">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-[border-color,box-shadow] overflow-hidden flex flex-col group">
       {/* Photo Header & Privacy Shield */}
       <div className="relative h-64 bg-gradient-to-tr from-rose-100 via-rose-50 to-amber-50 flex items-center justify-center overflow-hidden">
         {/* Placeholder Portrait Silhouette / Watermarked Display */}
@@ -85,11 +85,11 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
         {/* Shortlist Star Button Top Left */}
         <button
           onClick={handleToggleShortlist}
-          className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${shortlisted ? "bg-amber-500 text-white" : "bg-white/80 text-gray-600 hover:text-amber-500"}`}
+          className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-sm transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${shortlisted ? "bg-amber-500 text-white" : "bg-white/80 text-gray-600 hover:text-amber-500"}`}
           title={shortlisted ? "Remove from Shortlist" : "Add to Shortlist"}
           aria-label={shortlisted ? `Remove ${profile.first_name} from Shortlist` : `Add ${profile.first_name} to Shortlist`}
         >
-          <Star className={`w-4 h-4 ${shortlisted ? "fill-white" : ""}`} />
+          <Star className={`w-4 h-4 ${shortlisted ? "fill-white" : ""}`} aria-hidden="true" />
         </button>
       </div>
 
@@ -112,27 +112,27 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
               </span>
             </div>
             <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ShieldCheck className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
               Verified
             </span>
           </div>
 
           <p className="text-xs text-gray-600 mb-3 font-medium">
-            <span className="capitalize font-bold text-gray-800">{profile.gender ? profile.gender.toLowerCase() : ""}</span> • {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}&apos;{Math.round((profile.height_cm % 30.48) / 2.54)}&quot; • {profile.religion}{profile.community ? `, ${profile.community}` : ""}
+            <span className="capitalize font-bold text-gray-800">{profile.gender ? profile.gender.toLowerCase() : ""}</span> • {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}′{Math.round((profile.height_cm % 30.48) / 2.54)}″ • {profile.religion}{profile.community ? `, ${profile.community}` : ""}
           </p>
 
           <div className="space-y-1.5 text-xs text-gray-600 mb-4">
-            <div className="flex items-center gap-2">
-              <Briefcase className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+            <div className="flex items-center gap-2 min-w-0">
+              <Briefcase className="w-3.5 h-3.5 text-rose-500 shrink-0" aria-hidden="true" />
               <span className="truncate">{profile.occupation} ({profile.annual_income_bracket})</span>
             </div>
-            <div className="flex items-center gap-2">
-              <GraduationCap className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+            <div className="flex items-center gap-2 min-w-0">
+              <GraduationCap className="w-3.5 h-3.5 text-rose-500 shrink-0" aria-hidden="true" />
               <span className="truncate">{profile.highest_education}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-              <span>{profile.residence_city}, {profile.residence_state}</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" aria-hidden="true" />
+              <span className="truncate">{profile.residence_city}, {profile.residence_state}</span>
             </div>
           </div>
 

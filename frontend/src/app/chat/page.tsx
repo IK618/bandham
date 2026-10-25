@@ -146,7 +146,7 @@ export default function ChatPage() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 truncate">
-                      {c.last_message ? c.last_message.content : "Tap to open chat..."}
+                      {c.last_message ? c.last_message.content : "Tap to open chat…"}
                     </p>
                   </div>
                 </button>
@@ -180,7 +180,7 @@ export default function ChatPage() {
               </div>
 
               {/* Chat Messages Stream */}
-              <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[500px]">
+              <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[500px] overscroll-contain">
                 <div className="text-center my-2">
                   <span className="bg-white border border-gray-200 text-gray-500 text-[11px] px-3 py-1 rounded-full shadow-2xs">
                     Messages are encrypted in transit. Please observe matrimonial decorum.
@@ -204,9 +204,11 @@ export default function ChatPage() {
                         {m.content}
                       </div>
                       <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-400">
-                        <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                        <span className="tabular-nums">
+                          {new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "numeric", hour12: true }).format(new Date(m.created_at))}
+                        </span>
                         {isOwn && (
-                          <CheckCheck className={`w-3.5 h-3.5 ${m.status === "READ" ? "text-blue-500" : "text-gray-400"}`} />
+                          <CheckCheck className={`w-3.5 h-3.5 ${m.status === "READ" ? "text-blue-500" : "text-gray-400"}`} aria-hidden="true" />
                         )}
                       </div>
                     </div>
@@ -217,17 +219,23 @@ export default function ChatPage() {
 
               {/* Message Input Form */}
               <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-100 flex items-center gap-2">
+                <label htmlFor="chatMessageInput" className="sr-only">
+                  Message text
+                </label>
                 <input
+                  id="chatMessageInput"
+                  name="content"
                   ref={inputRef}
                   type="text"
+                  autoComplete="off"
                   required
                   placeholder="Type a respectful message…"
                   value={newText}
                   onChange={(e) => setNewText(e.target.value)}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full text-sm focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
                 />
                 <Button type="submit" variant="primary" size="md" isLoading={sending}>
-                  <Send className="w-4 h-4 mr-1" /> Send
+                  <Send className="w-4 h-4 mr-1" aria-hidden="true" /> Send
                 </Button>
               </form>
             </>

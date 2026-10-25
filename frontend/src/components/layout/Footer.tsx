@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Heart, Lock, Phone } from "lucide-react";
+import { ShieldCheck, Heart, Lock } from "lucide-react";
 
 export function Footer() {
   return (
@@ -10,7 +10,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white">
-                <Heart className="w-4 h-4 fill-white" />
+                <Heart className="w-4 h-4 fill-white" aria-hidden="true" />
               </div>
               <span className="text-xl font-royal font-bold tracking-wider text-white">Bandham</span>
             </div>
@@ -27,7 +27,6 @@ export function Footer() {
               <li><Link href="/matches" className="hover:text-brand-400 transition-colors">Daily Recommendations</Link></li>
               <li><Link href="/search" className="hover:text-brand-400 transition-colors">Faceted Search</Link></li>
               <li><Link href="/pricing" className="hover:text-brand-400 transition-colors">Membership Plans</Link></li>
-              <li><Link href="/success-stories" className="hover:text-brand-400 transition-colors">Success Stories</Link></li>
             </ul>
           </div>
 
@@ -36,9 +35,7 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Trust & Safety</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/settings" className="hover:text-brand-400 transition-colors">Privacy Settings & GDPR</Link></li>
-              <li><Link href="/safety-guidelines" className="hover:text-brand-400 transition-colors">Safety Tips & Scam Alerts</Link></li>
-              <li><Link href="/terms" className="hover:text-brand-400 transition-colors">Terms of Service</Link></li>
-              <li><Link href="/privacy" className="hover:text-brand-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/pricing" className="hover:text-brand-400 transition-colors">Subscription Tiers</Link></li>
             </ul>
           </div>
 
@@ -49,18 +46,18 @@ export function Footer() {
               Statutory Grievance Officer available per Digital Personal Data Protection standards.
             </p>
             <div className="flex items-center gap-2 text-xs text-gray-300">
-              <Lock className="w-4 h-4 text-emerald-400" />
+              <Lock className="w-4 h-4 text-emerald-400" aria-hidden="true" />
               <span>256-bit Encrypted SSL Communication</span>
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-300 mt-2">
-              <ShieldCheck className="w-4 h-4 text-brand-400" />
+              <ShieldCheck className="w-4 h-4 text-brand-400" aria-hidden="true" />
               <span>100% Verified Mobile Members</span>
             </div>
           </div>
         </div>
 
         <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500">
-          <p>© {new Date().getFullYear()} Bandham Matrimonial Platform. All rights reserved.</p>
+          <p>© 2026 Bandham Matrimonial Platform. All rights reserved.</p>
           <p className="mt-2 sm:mt-0">Designed with integrity for sacred matrimonial unions.</p>
         </div>
       </div>

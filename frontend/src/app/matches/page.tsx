@@ -31,7 +31,7 @@ export default function MatchesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-50 border border-gold-200 text-gold-900 text-xs font-semibold mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" aria-hidden="true" />
             <span>Refreshed Every 24 Hours</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold font-serif text-gray-900">

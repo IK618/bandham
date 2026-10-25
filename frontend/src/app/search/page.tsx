@@ -125,11 +125,13 @@ function SearchContent() {
       <form onSubmit={handleApplyFilters} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Gender</label>
+            <label htmlFor="genderFilter" className="block font-semibold text-gray-700 mb-1">Gender</label>
             <select
+              id="genderFilter"
+              name="gender"
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
             >
               <option value="">All Genders</option>
               <option value="FEMALE">Female (Bride)</option>
@@ -138,11 +140,13 @@ function SearchContent() {
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Religion</label>
+            <label htmlFor="religionFilter" className="block font-semibold text-gray-700 mb-1">Religion</label>
             <select
+              id="religionFilter"
+              name="religion"
               value={religion}
               onChange={(e) => setReligion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
             >
               <option value="">All Religions</option>
               <option value="Hindu">Hindu</option>
@@ -154,10 +158,12 @@ function SearchContent() {
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">City / Region</label>
+            <label htmlFor="cityFilter" className="block font-semibold text-gray-700 mb-1">City / Region</label>
             <input
+              id="cityFilter"
+              name="city"
               type="text"
-              placeholder="e.g. Bangalore, Mumbai"
+              placeholder="e.g. Bangalore, Mumbai…"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
@@ -165,11 +171,13 @@ function SearchContent() {
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Diet</label>
+            <label htmlFor="dietFilter" className="block font-semibold text-gray-700 mb-1">Diet</label>
             <select
+              id="dietFilter"
+              name="diet"
               value={diet}
               onChange={(e) => setDiet(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
             >
               <option value="">All Diets</option>
               <option value="VEGETARIAN">Vegetarian</option>
@@ -180,10 +188,12 @@ function SearchContent() {
           </div>
 
           <div>
-            <label className="block font-semibold text-gray-700 mb-1">Keyword (Bio / Job)</label>
+            <label htmlFor="keywordFilter" className="block font-semibold text-gray-700 mb-1">Keyword (Bio / Job)</label>
             <input
+              id="keywordFilter"
+              name="keyword"
               type="text"
-              placeholder="e.g. Architect, CA, Tech"
+              placeholder="e.g. Architect, CA, Tech…"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
@@ -193,10 +203,10 @@ function SearchContent() {
 
         <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
           <Button type="button" variant="outline" size="sm" onClick={handleReset}>
-            <RotateCcw className="w-3.5 h-3.5 mr-1" /> Reset
+            <RotateCcw className="w-3.5 h-3.5 mr-1" aria-hidden="true" /> Reset
           </Button>
           <Button type="submit" variant="primary" size="sm">
-            <Search className="w-3.5 h-3.5 mr-1" /> Apply Filters
+            <Search className="w-3.5 h-3.5 mr-1" aria-hidden="true" /> Apply Filters
           </Button>
         </div>
       </form>

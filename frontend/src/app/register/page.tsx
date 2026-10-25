@@ -104,11 +104,13 @@ export default function RegisterPage() {
         {step === "FORM" ? (
           <form onSubmit={handleRegisterSubmit} className="space-y-4 text-sm">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">This Profile is Created For</label>
+              <label htmlFor="profileFor" className="block text-xs font-semibold text-gray-700 mb-1">This Profile is Created For</label>
               <select
+                id="profileFor"
+                name="profileFor"
                 value={profileFor}
                 onChange={(e) => setProfileFor(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
               >
                 <option value="SELF">Self (Myself)</option>
                 <option value="PARENT">Son / Daughter (Parent)</option>
@@ -119,43 +121,49 @@ export default function RegisterPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">First Name</label>
+                <label htmlFor="firstName" className="block text-xs font-semibold text-gray-700 mb-1">First Name</label>
                 <input
+                  id="firstName"
+                  name="firstName"
                   type="text"
+                  autoComplete="given-name"
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="e.g. Ananya"
+                  placeholder="e.g. Ananya…"
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Last Name</label>
+                <label htmlFor="lastName" className="block text-xs font-semibold text-gray-700 mb-1">Last Name</label>
                 <input
+                  id="lastName"
+                  name="lastName"
                   type="text"
+                  autoComplete="family-name"
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  placeholder="e.g. Sharma"
+                  placeholder="e.g. Sharma…"
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Gender</label>
+              <span className="block text-xs font-semibold text-gray-700 mb-1">Gender</span>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setGender("FEMALE")}
-                  className={`py-2 text-xs font-medium rounded-xl border text-center ${gender === "FEMALE" ? "bg-rose-50 border-brand-500 text-brand-700 font-bold" : "border-gray-200 text-gray-600"}`}
+                  className={`py-2 text-xs font-medium rounded-xl border text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${gender === "FEMALE" ? "bg-rose-50 border-brand-500 text-brand-700 font-bold" : "border-gray-200 text-gray-600"}`}
                 >
                   Female (Bride)
                 </button>
                 <button
                   type="button"
                   onClick={() => setGender("MALE")}
-                  className={`py-2 text-xs font-medium rounded-xl border text-center ${gender === "MALE" ? "bg-rose-50 border-brand-500 text-brand-700 font-bold" : "border-gray-200 text-gray-600"}`}
+                  className={`py-2 text-xs font-medium rounded-xl border text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${gender === "MALE" ? "bg-rose-50 border-brand-500 text-brand-700 font-bold" : "border-gray-200 text-gray-600"}`}
                 >
                   Male (Groom)
                 </button>
@@ -163,59 +171,75 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
+              <label htmlFor="email" className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
               <input
+                id="email"
+                name="email"
                 type="email"
+                autoComplete="email"
+                spellCheck={false}
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="ananya@example.com"
+                placeholder="ananya@example.com…"
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Mobile Phone (with Country Code)</label>
+              <label htmlFor="phoneNumber" className="block text-xs font-semibold text-gray-700 mb-1">Mobile Phone (with Country Code)</label>
               <input
-                type="text"
+                id="phoneNumber"
+                name="phoneNumber"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 required
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+919876543210"
+                placeholder="+919876543210…"
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Set Account Password</label>
+              <label htmlFor="password" className="block text-xs font-semibold text-gray-700 mb-1">Set Account Password</label>
               <input
+                id="password"
+                name="password"
                 type="password"
+                autoComplete="new-password"
                 required
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min 8 characters"
+                placeholder="Min 8 characters…"
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
             <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={loading}>
-              Continue to Phone Verification <ArrowRight className="w-4 h-4 ml-2" />
+              Continue to Phone Verification <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </form>
         ) : (
           <form onSubmit={handleOtpSubmit} className="space-y-6 text-sm">
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
+              <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" aria-hidden="true" />
               <p className="text-xs text-emerald-800">
                 A 6-digit verification code has been dispatched. (In development mode, enter code <strong>123456</strong>).
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">6-Digit Verification Code</label>
+              <label htmlFor="otpCode" className="block text-xs font-semibold text-gray-700 mb-1">6-Digit Verification Code</label>
               <input
+                id="otpCode"
+                name="otpCode"
                 type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
                 required
                 maxLength={6}
                 value={otpCode}
@@ -225,7 +249,7 @@ export default function RegisterPage() {
             </div>
 
             <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={loading}>
-              Verify &amp; Enter Dashboard <CheckCircle2 className="w-4 h-4 ml-2" />
+              Verify &amp; Enter Dashboard <CheckCircle2 className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </form>
         )}

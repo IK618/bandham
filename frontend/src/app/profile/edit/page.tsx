@@ -55,6 +55,18 @@ export default function EditProfilePage() {
   const [drinking, setDrinking] = useState("NO");
   const [bioNarrative, setBioNarrative] = useState("");
   const [completenessPct, setCompletenessPct] = useState(50);
+  const [isDirty, setIsDirty] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     async function loadCurrentProfile() {
@@ -145,6 +157,7 @@ export default function EditProfilePage() {
       });
 
       setCompletenessPct(updated.profile_completeness_pct || 80);
+      setIsDirty(false);
       setNotice({
         type: "success",
         text: "Your profile has been successfully saved and updated in the matrimonial registry!",
@@ -216,32 +229,47 @@ export default function EditProfilePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">First Name *</label>
+              <label htmlFor="profileFirstName" className="block text-xs font-semibold text-gray-700 mb-1">First Name *</label>
               <input
+                id="profileFirstName"
+                name="firstName"
                 type="text"
                 required
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  setIsDirty(true);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Last Name *</label>
+              <label htmlFor="profileLastName" className="block text-xs font-semibold text-gray-700 mb-1">Last Name *</label>
               <input
+                id="profileLastName"
+                name="lastName"
                 type="text"
                 required
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  setIsDirty(true);
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Gender *</label>
+              <label htmlFor="profileGender" className="block text-xs font-semibold text-gray-700 mb-1">Gender *</label>
               <select
+                id="profileGender"
+                name="gender"
                 value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 font-medium"
+                onChange={(e) => {
+                  setGender(e.target.value);
+                  setIsDirty(true);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 font-medium bg-white text-gray-900"
               >
                 <option value="FEMALE">Female (Bride)</option>
                 <option value="MALE">Male (Groom)</option>
@@ -250,15 +278,20 @@ export default function EditProfilePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Height (in cm) *</label>
+              <label htmlFor="profileHeightCm" className="block text-xs font-semibold text-gray-700 mb-1">Height (in cm) *</label>
               <input
+                id="profileHeightCm"
+                name="heightCm"
                 type="number"
                 min={130}
                 max={220}
                 required
                 value={heightCm}
-                onChange={(e) => setHeightCm(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+                onChange={(e) => {
+                  setHeightCm(Number(e.target.value));
+                  setIsDirty(true);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 tabular-nums"
               />
             </div>
 
@@ -574,11 +607,17 @@ export default function EditProfilePage() {
             Introduce yourself, your values, family background, and the kind of companion you seek. (Phone numbers and external links are automatically redacted).
           </p>
 
+          <label htmlFor="bioNarrativeInput" className="sr-only">About Myself Bio Narrative</label>
           <textarea
+            id="bioNarrativeInput"
+            name="bioNarrative"
             rows={5}
             value={bioNarrative}
-            onChange={(e) => setBioNarrative(e.target.value)}
-            placeholder="I am a warm, ambitious professional who values family traditions while embracing modern perspectives. In my free time, I enjoy..."
+            onChange={(e) => {
+              setBioNarrative(e.target.value);
+              setIsDirty(true);
+            }}
+            placeholder="I am a warm, ambitious professional who values family traditions while embracing modern perspectives. In my free time, I enjoy…"
             className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-brand-500 leading-relaxed text-sm"
           />
         </div>
@@ -590,7 +629,7 @@ export default function EditProfilePage() {
             </Button>
           </Link>
           <Button variant="primary" size="lg" type="submit" isLoading={saving}>
-            <Save className="w-4 h-4 mr-2" /> Save Profile Portfolio
+            <Save className="w-4 h-4 mr-2" aria-hidden="true" /> Save Profile Portfolio
           </Button>
         </div>
       </form>

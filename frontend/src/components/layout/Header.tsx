@@ -88,7 +88,7 @@ export function Header() {
           {/* Logo & Brand Identity */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-rose-400 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-              <Heart className="w-5 h-5 fill-white" />
+              <Heart className="w-5 h-5 fill-white" aria-hidden="true" />
             </div>
             <div>
               <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-brand-700 via-rose-600 to-amber-600 bg-clip-text text-transparent font-royal">
@@ -108,11 +108,11 @@ export function Header() {
                   href="/admin"
                   className="text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full border border-amber-300 flex items-center gap-1.5 transition-colors"
                 >
-                  <Shield className="w-4 h-4 text-amber-600" />
+                  <Shield className="w-4 h-4 text-amber-600" aria-hidden="true" />
                   Trust &amp; Safety Portal
                 </Link>
                 <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <Search className="w-4 h-4" />
+                  <Search className="w-4 h-4" aria-hidden="true" />
                   Browse Profiles
                 </Link>
                 <Link href="/pricing" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
@@ -128,18 +128,18 @@ export function Header() {
                   My Profile
                 </Link>
                 <Link href="/matches" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <Sparkles className="w-4 h-4 text-gold-500" />
+                  <Sparkles className="w-4 h-4 text-gold-500" aria-hidden="true" />
                   Today&apos;s Matches
                 </Link>
                 <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <Search className="w-4 h-4" />
+                  <Search className="w-4 h-4" aria-hidden="true" />
                   Search
                 </Link>
                 <Link href="/inbox" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
                   Inbox
                 </Link>
                 <Link href="/chat" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <MessageSquare className="w-4 h-4" />
+                  <MessageSquare className="w-4 h-4" aria-hidden="true" />
                   Chat
                 </Link>
                 <Link href="/pricing" className="text-sm font-semibold text-gold-600 hover:text-gold-700 bg-gold-50 px-3 py-1 rounded-full border border-gold-200 transition-colors">
@@ -153,10 +153,11 @@ export function Header() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               href={currentUser?.isAdmin ? "/admin" : "/settings"}
-              className="p-2 text-gray-500 hover:text-brand-600 hover:bg-rose-50 rounded-full transition-colors"
+              className="p-2 text-gray-500 hover:text-brand-600 hover:bg-rose-50 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               title={currentUser?.isAdmin ? "Admin Console" : "Settings & Privacy"}
+              aria-label={currentUser?.isAdmin ? "Admin Console" : "Settings and Privacy"}
             >
-              <Shield className="w-5 h-5" />
+              <Shield className="w-5 h-5" aria-hidden="true" />
             </Link>
 
             {currentUser ? (
@@ -185,10 +186,10 @@ export function Header() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-full border border-gray-200 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-full border border-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                   title="Log out of Bandham"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Logout</span>
                 </button>
               </div>
@@ -197,7 +198,7 @@ export function Header() {
                 <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-brand-600 px-3 py-2">
                   Login
                 </Link>
-                <Link href="/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all">
+                <Link href="/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500 transition-[background-color,border-color,color,box-shadow]">
                   Register Free
                 </Link>
               </div>
@@ -208,10 +209,10 @@ export function Header() {
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-gray-600 hover:text-brand-600 hover:bg-rose-50"
+              className="p-2 rounded-md text-gray-600 hover:text-brand-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               aria-label="Toggle Navigation Menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -219,7 +220,7 @@ export function Header() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-rose-100 bg-white px-4 pt-2 pb-6 space-y-3">
+        <div className="md:hidden border-b border-rose-100 bg-white px-4 pt-2 pb-6 space-y-3 overscroll-contain">
           {currentUser?.isAdmin ? (
             <>
               <Link href="/admin" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-bold text-amber-800 bg-amber-50">

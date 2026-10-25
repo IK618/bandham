@@ -11,6 +11,25 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Page rubber-band bounce suppression for fine pointers */
+  @media (pointer: fine) {
+    html {
+      overscroll-behavior: none;
+    }
+  }
+
+  /* Honor user accessibility preferences for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   body {
     @apply antialiased font-sans text-stone-900 selection:bg-rose-200 selection:text-rose-950;
     background: radial-gradient(circle at 50% 0%, #fffbfb 0%, #faf8f5 45%, #f6f3ee 100%);

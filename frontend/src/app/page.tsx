@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart, ShieldCheck, Lock, Sparkles, Users, Award, Search, ArrowRight } from "lucide-react";
+import { ShieldCheck, Lock, Sparkles, Search, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export default function HomePage() {
@@ -12,7 +12,7 @@ export default function HomePage() {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-100/80 border border-rose-200 text-brand-800 text-xs font-semibold tracking-wide">
-                <Sparkles className="w-3.5 h-3.5 text-gold-500 fill-gold-500" />
+                <Sparkles className="w-3.5 h-3.5 text-gold-500 fill-gold-500" aria-hidden="true" />
                 <span>The Privacy-First Matrimonial Platform</span>
               </div>
 
@@ -31,7 +31,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                 <Link href="/register">
                   <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                    Create Free Profile <ArrowRight className="w-4 h-4 ml-2" />
+                    Create Free Profile <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
                   </Button>
                 </Link>
                 <Link href="/search">
@@ -44,11 +44,11 @@ export default function HomePage() {
               {/* Trust Metrics Pill */}
               <div className="pt-6 border-t border-rose-100 grid grid-cols-3 gap-4 text-center lg:text-left">
                 <div>
-                  <p className="text-2xl font-bold text-gray-900 font-serif">500+</p>
+                  <p className="text-2xl font-bold text-gray-900 font-serif tabular-nums">500+</p>
                   <p className="text-xs text-gray-500">Verified Profiles</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900 font-serif">100%</p>
+                  <p className="text-2xl font-bold text-gray-900 font-serif tabular-nums">100%</p>
                   <p className="text-xs text-gray-500">Phone Verified</p>
                 </div>
                 <div>
@@ -63,7 +63,7 @@ export default function HomePage() {
               <div className="bg-white rounded-3xl border border-rose-100 shadow-xl p-6 sm:p-8 space-y-6">
                 <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
                   <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-brand-600">
-                    <Search className="w-5 h-5" />
+                    <Search className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-gray-900 font-serif">Find Your Ideal Match</h2>
@@ -73,8 +73,12 @@ export default function HomePage() {
 
                 <form action="/search" method="GET" className="space-y-4 text-sm">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">Looking For</label>
-                    <select name="gender" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+                    <label htmlFor="heroGender" className="block text-xs font-semibold text-gray-700 mb-1">Looking For</label>
+                    <select
+                      id="heroGender"
+                      name="gender"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 bg-white text-gray-900"
+                    >
                       <option value="FEMALE">A Bride (Female)</option>
                       <option value="MALE">A Groom (Male)</option>
                     </select>
@@ -82,8 +86,12 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Religion</label>
-                      <select name="religion" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+                      <label htmlFor="heroReligion" className="block text-xs font-semibold text-gray-700 mb-1">Religion</label>
+                      <select
+                        id="heroReligion"
+                        name="religion"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 bg-white text-gray-900"
+                      >
                         <option value="">Any Religion</option>
                         <option value="Hindu">Hindu</option>
                         <option value="Muslim">Muslim</option>
@@ -93,8 +101,12 @@ export default function HomePage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Mother Tongue</label>
-                      <select name="mother_tongue" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+                      <label htmlFor="heroMotherTongue" className="block text-xs font-semibold text-gray-700 mb-1">Mother Tongue</label>
+                      <select
+                        id="heroMotherTongue"
+                        name="mother_tongue"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500 bg-white text-gray-900"
+                      >
                         <option value="">Any Language</option>
                         <option value="Hindi">Hindi</option>
                         <option value="Telugu">Telugu</option>
@@ -107,12 +119,13 @@ export default function HomePage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">City or State</label>
+                    <label htmlFor="heroCity" className="block text-xs font-semibold text-gray-700 mb-1">City or State</label>
                     <input
+                      id="heroCity"
                       type="text"
                       name="city"
-                      placeholder="e.g. Bangalore, Mumbai, Delhi"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"
+                      placeholder="e.g. Bangalore, Mumbai, Delhi…"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-brand-500"
                     />
                   </div>
 
@@ -140,7 +153,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4 hover:border-rose-200 transition-colors">
             <div className="w-12 h-12 bg-rose-50 text-brand-600 rounded-xl flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6" />
+              <ShieldCheck className="w-6 h-6" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold font-serif text-gray-900">100% Mobile &amp; ID Verified</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
@@ -150,7 +163,7 @@ export default function HomePage() {
 
           <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4 hover:border-rose-200 transition-colors">
             <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-              <Lock className="w-6 h-6" />
+              <Lock className="w-6 h-6" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold font-serif text-gray-900">Dynamic Photo &amp; PII Privacy</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
@@ -160,7 +173,7 @@ export default function HomePage() {
 
           <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4 hover:border-rose-200 transition-colors">
             <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6" />
+              <Sparkles className="w-6 h-6" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold font-serif text-gray-900">Weighted Matching Engine</h3>
             <p className="text-sm text-gray-600 leading-relaxed">

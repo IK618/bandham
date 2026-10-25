@@ -82,11 +82,11 @@ export default function DashboardPage() {
         <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shrink-0 w-full md:w-auto">
           <div className="flex justify-between text-xs font-medium mb-1">
             <span>Profile Completeness</span>
-            <span>{profile?.profile_completeness_pct}%</span>
+            <span className="tabular-nums font-mono">{profile?.profile_completeness_pct}%</span>
           </div>
           <div className="w-full md:w-48 bg-white/30 h-2 rounded-full overflow-hidden">
             <div
-              className="bg-emerald-400 h-full rounded-full transition-all"
+              className="bg-emerald-400 h-full rounded-full transition-[width] duration-300"
               style={{ width: `${profile?.profile_completeness_pct || 75}%` }}
             />
           </div>
@@ -107,33 +107,33 @@ export default function DashboardPage() {
 
       {/* Quick Access Action Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Link href="/matches" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-all flex flex-col items-center text-center group">
+        <Link href="/matches" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-[border-color,box-shadow] flex flex-col items-center text-center group">
           <div className="w-10 h-10 rounded-full bg-rose-50 text-brand-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-            <Sparkles className="w-5 h-5 text-gold-500" />
+            <Sparkles className="w-5 h-5 text-gold-500" aria-hidden="true" />
           </div>
           <span className="text-sm font-bold text-gray-900 font-serif">Today&apos;s Matches</span>
           <span className="text-xs text-gray-500">Curated top 20</span>
         </Link>
 
-        <Link href="/inbox" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-all flex flex-col items-center text-center group">
+        <Link href="/inbox" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-[border-color,box-shadow] flex flex-col items-center text-center group">
           <div className="w-10 h-10 rounded-full bg-rose-50 text-brand-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-            <Heart className="w-5 h-5" />
+            <Heart className="w-5 h-5" aria-hidden="true" />
           </div>
           <span className="text-sm font-bold text-gray-900 font-serif">Inbox &amp; Interests</span>
           <span className="text-xs text-gray-500">Pending &amp; accepted</span>
         </Link>
 
-        <Link href="/shortlist" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-all flex flex-col items-center text-center group">
+        <Link href="/shortlist" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-[border-color,box-shadow] flex flex-col items-center text-center group">
           <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-            <Star className="w-5 h-5" />
+            <Star className="w-5 h-5" aria-hidden="true" />
           </div>
           <span className="text-sm font-bold text-gray-900 font-serif">My Shortlist</span>
           <span className="text-xs text-gray-500">Saved candidates</span>
         </Link>
 
-        <Link href="/chat" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-all flex flex-col items-center text-center group">
+        <Link href="/chat" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-[border-color,box-shadow] flex flex-col items-center text-center group">
           <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-            <MessageSquare className="w-5 h-5" />
+            <MessageSquare className="w-5 h-5" aria-hidden="true" />
           </div>
           <span className="text-sm font-bold text-gray-900 font-serif">Messages</span>
           <span className="text-xs text-gray-500">Live 1-on-1 chat</span>

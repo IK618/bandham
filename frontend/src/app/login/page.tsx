@@ -69,30 +69,37 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5 text-sm">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label htmlFor="emailOrPhone" className="block text-xs font-semibold text-gray-700 mb-1">
               Registered Email or Phone Number
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3" aria-hidden="true" />
               <input
+                id="emailOrPhone"
+                name="emailOrPhone"
                 type="text"
+                autoComplete="username"
+                spellCheck={false}
                 required
                 value={emailOrPhone}
                 onChange={(e) => setEmailOrPhone(e.target.value)}
-                placeholder="ananya@bandham.local or +919876543210"
+                placeholder="ananya@bandham.local or +919876543210…"
                 className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-xs font-semibold text-gray-700 mb-1">
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3" aria-hidden="true" />
               <input
+                id="password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -103,7 +110,7 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={loading}>
-            Sign In Securely <ArrowRight className="w-4 h-4 ml-2" />
+            Sign In Securely <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
           </Button>
         </form>
 

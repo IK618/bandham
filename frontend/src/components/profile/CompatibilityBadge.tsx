@@ -16,8 +16,8 @@ export function CompatibilityBadge({ score }: CompatibilityBadgeProps) {
 
   return (
     <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${getStyle(score)}`}>
-      <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-      <span>{score}% Compatibility Match</span>
+      <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" aria-hidden="true" />
+      <span className="tabular-nums">{score}% Compatibility Match</span>
     </div>
   );
 }

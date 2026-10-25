@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Heart, Check, X, ArrowUpRight } from "lucide-react";
 import { InterestItem } from "@/types";
 import { Button } from "@/components/ui/Button";
@@ -10,11 +11,19 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { apiClient } from "@/lib/api";
 
-export default function InboxPage() {
-  const [tab, setTab] = useState<"RECEIVED" | "SENT">("RECEIVED");
+function InboxContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") === "SENT" ? "SENT" : "RECEIVED";
+  const [tab, setTab] = useState<"RECEIVED" | "SENT">(initialTab);
   const [received, setReceived] = useState<InterestItem[]>([]);
   const [sent, setSent] = useState<InterestItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const switchTab = (newTab: "RECEIVED" | "SENT") => {
+    setTab(newTab);
+    router.replace(`/inbox?tab=${newTab}`);
+  };
 
   const fetchInterests = async () => {
     setLoading(true);
@@ -68,24 +77,24 @@ export default function InboxPage() {
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
         <button
-          onClick={() => setTab("RECEIVED")}
-          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-all ${
+          onClick={() => switchTab("RECEIVED")}
+          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-[color,border-color] ${
             tab === "RECEIVED"
               ? "border-brand-600 text-brand-600"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          Received Interests ({received.length})
+          Received Interests <span className="tabular-nums font-mono">({received.length})</span>
         </button>
         <button
-          onClick={() => setTab("SENT")}
-          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-all ${
+          onClick={() => switchTab("SENT")}
+          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-[color,border-color] ${
             tab === "SENT"
               ? "border-brand-600 text-brand-600"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          Sent Requests ({sent.length})
+          Sent Requests <span className="tabular-nums font-mono">({sent.length})</span>
         </button>
       </div>
 
@@ -170,5 +179,13 @@ export default function InboxPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function InboxPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner text="Loading invitations…" />}>
+      <InboxContent />
+    </Suspense>
   );
 }

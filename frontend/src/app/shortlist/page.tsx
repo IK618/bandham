@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Star, Trash2 } from "lucide-react";
 import { ShortlistItem } from "@/types";
 import { ProfileCard } from "@/components/profile/ProfileCard";
-import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { apiClient } from "@/lib/api";

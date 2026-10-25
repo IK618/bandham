@@ -290,24 +290,24 @@ export default function AdminDashboardPage() {
       <div className="flex border-b border-gray-200 gap-4">
         <button
           onClick={() => setActiveTab("users")}
-          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] ${
             activeTab === "users"
               ? "border-brand-600 text-brand-600"
               : "border-transparent text-gray-500 hover:text-gray-800"
           }`}
         >
-          <Users className="w-4 h-4" />
+          <Users className="w-4 h-4" aria-hidden="true" />
           Member Census &amp; Position Governance ({users.length})
         </button>
         <button
           onClick={() => setActiveTab("reports")}
-          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] ${
             activeTab === "reports"
               ? "border-brand-600 text-brand-600"
               : "border-transparent text-gray-500 hover:text-gray-800"
           }`}
         >
-          <AlertTriangle className="w-4 h-4 text-amber-500" />
+          <AlertTriangle className="w-4 h-4 text-amber-500" aria-hidden="true" />
           Flagged Incident Queue ({reports.length})
         </button>
       </div>
@@ -318,9 +318,12 @@ export default function AdminDashboardPage() {
           {/* Filter Bar */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" aria-hidden="true" />
               <input
                 type="text"
+                name="search"
+                autoComplete="off"
+                aria-label="Search member census"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name, email, phone, or BDN ID…"
@@ -330,9 +333,10 @@ export default function AdminDashboardPage() {
 
             <div className="flex gap-2">
               <select
+                aria-label="Filter by role"
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 font-medium"
+                className="px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 font-medium bg-white text-gray-900"
               >
                 <option value="ALL">All Positions</option>
                 <option value="MEMBER">Members Only</option>
@@ -341,9 +345,10 @@ export default function AdminDashboardPage() {
               </select>
 
               <select
+                aria-label="Filter by account status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 font-medium"
+                className="px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 font-medium bg-white text-gray-900"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">Active</option>
@@ -410,13 +415,14 @@ export default function AdminDashboardPage() {
                         {/* Contact */}
                         <td className="py-3.5 pr-3">
                           <span className="font-medium text-gray-700 block">{u.email}</span>
-                          <span className="text-[11px] text-gray-400 font-mono block">{u.phone_number}</span>
+                          <span className="text-[11px] text-gray-400 font-mono block tabular-nums">{u.phone_number}</span>
                         </td>
 
                         {/* Upgrade / Degrade Position */}
                         <td className="py-3.5 pr-3">
                           <div className="flex items-center gap-1.5">
                             <select
+                              aria-label={`Change position for ${fullName}`}
                               value={u.role}
                               disabled={isBusy}
                               onChange={(e) =>
