@@ -7,7 +7,7 @@ enables swift disciplinary suspensions/blocks, and manages staff positions (upgr
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -355,9 +355,11 @@ async def list_moderation_reports(
 
 
 @router.patch("/reports/{report_id}/resolve")
+@router.post("/reports/{report_id}/resolve")
 async def resolve_report(
     report_id: str,
-    resolution_status: ReportStatusEnum = ReportStatusEnum.RESOLVED,
+    resolution_status: Optional[str] = Query(None),
+    payload: Optional[dict] = Body(None),
     admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
     db: AsyncSession = Depends(get_db)
 ):
@@ -371,11 +373,22 @@ async def resolve_report(
     if not report:
         raise HTTPException(status_code=404, detail="Incident report not found.")
 
-    report.status = resolution_status
+    target_status_str = "RESOLVED"
+    if payload and isinstance(payload, dict) and "resolution_status" in payload:
+        target_status_str = str(payload["resolution_status"]).upper()
+    elif resolution_status:
+        target_status_str = str(resolution_status).upper()
+
+    try:
+        parsed_status = ReportStatusEnum(target_status_str)
+    except ValueError:
+        parsed_status = ReportStatusEnum.RESOLVED
+
+    report.status = parsed_status
     report.resolved_by_id = admin_user.id
     report.resolved_at = datetime.now(timezone.utc)
     await db.commit()
-    return {"message": f"Report marked as {resolution_status.value}."}
+    return {"message": f"Report marked as {parsed_status.value}."}
 
 
 @router.patch("/users/{user_id}/suspend")

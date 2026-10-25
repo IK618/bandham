@@ -19,8 +19,13 @@ import {
   XCircle,
   Check,
   Scale,
-  User
+  User,
+  Coins,
+  Edit3,
+  Plus
 } from "lucide-react";
+import { PlanItem } from "@/types";
+import { PlanEditModal } from "@/components/pricing/PlanEditModal";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -50,11 +55,14 @@ interface AdminUser {
 }
 
 export default function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"proposals" | "users" | "reports">("proposals");
+  const [activeTab, setActiveTab] = useState<"proposals" | "users" | "reports" | "plans">("proposals");
   const [stats, setStats] = useState<any>(null);
   const [reports, setReports] = useState<any[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [proposals, setProposals] = useState<AdminUser[]>([]);
+  const [adminPlans, setAdminPlans] = useState<PlanItem[]>([]);
+  const [editPlanModalOpen, setEditPlanModalOpen] = useState(false);
+  const [selectedAdminPlan, setSelectedAdminPlan] = useState<PlanItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
   const [proposalsLoading, setProposalsLoading] = useState(false);
@@ -64,15 +72,20 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [reportFilter, setReportFilter] = useState<"ALL" | "PENDING" | "RESOLVED">("ALL");
   const [actionNotice, setActionNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
   const fetchAdminStatsAndReports = async () => {
     try {
-      const s = await apiClient<any>("/admin/dashboard-stats");
-      const r = await apiClient<any[]>("/admin/reports");
+      const [s, r, p] = await Promise.all([
+        apiClient<any>("/admin/dashboard-stats"),
+        apiClient<any[]>("/admin/reports"),
+        apiClient<PlanItem[]>("/plans").catch(() => []),
+      ]);
       setStats(s);
       setReports(r);
+      setAdminPlans(p);
     } catch (err: any) {
       const msg = String(err?.message || "");
       if (
@@ -251,15 +264,26 @@ export default function AdminDashboardPage() {
   };
 
   const handleResolveReport = async (reportId: string, statusVal: string) => {
+    setActionInProgress(`${reportId}-${statusVal.toLowerCase()}`);
     try {
-      await apiClient(`/admin/reports/${reportId}/resolve?resolution_status=${statusVal}`, { method: "PATCH" });
+      await apiClient(`/admin/reports/${reportId}/resolve?resolution_status=${statusVal}`, {
+        method: "POST",
+        body: JSON.stringify({ resolution_status: statusVal }),
+      });
+      // Optimistically update report status locally
+      setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, status: statusVal } : r)));
       fetchAdminStatsAndReports();
       setActionNotice({
         type: "success",
-        text: `Incident report marked as ${statusVal}.`,
+        text: `Incident report #${reportId.slice(0, 8)} marked as ${statusVal}.`,
       });
     } catch (err: any) {
-      alert(err.message || "Action failed.");
+      setActionNotice({
+        type: "error",
+        text: err.message || `Failed to update report status to ${statusVal}.`,
+      });
+    } finally {
+      setActionInProgress(null);
     }
   };
 
@@ -411,6 +435,17 @@ export default function AdminDashboardPage() {
         >
           <AlertTriangle className="w-4 h-4 text-amber-500" aria-hidden="true" />
           Flagged Incident Queue ({reports.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("plans")}
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-[color,border-color] whitespace-nowrap ${
+            activeTab === "plans"
+              ? "border-amber-600 text-amber-600"
+              : "border-transparent text-gray-500 hover:text-gray-800"
+          }`}
+        >
+          <Coins className="w-4 h-4 text-amber-500" aria-hidden="true" />
+          Monetary Plans &amp; Credit Quotas ({adminPlans.length})
         </button>
       </div>
 
@@ -732,64 +767,311 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Tab 2: Flagged Incident Reports Queue */}
-      {activeTab === "reports" && (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
-          <h2 className="text-lg font-bold font-serif text-gray-900 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
-            Flagged Incident Review Queue ({reports.length})
-          </h2>
+      {activeTab === "reports" && (() => {
+        const filteredReports = reports.filter((r) => {
+          if (reportFilter === "PENDING") return r.status === "PENDING";
+          if (reportFilter === "RESOLVED") return r.status === "RESOLVED" || r.status === "DISMISSED";
+          return true;
+        });
 
-          {reports.length === 0 ? (
-            <p className="text-xs text-gray-400 py-6 text-center">Zero pending reports. The community is healthy.</p>
-          ) : (
-            <div className="space-y-4">
-              {reports.map((r) => (
-                <div
-                  key={r.id}
-                  className="p-4 rounded-2xl border border-gray-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+        return (
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+              <div>
+                <h2 className="text-lg font-bold font-serif text-gray-900 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" aria-hidden="true" />
+                  Flagged Incident Review Queue ({reports.length})
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Harassment claims, profile violations, and member concerns managed by Administrators and Community Moderators
+                </p>
+              </div>
+
+              {/* Incident Queue Filter Tabs */}
+              <div className="flex items-center gap-1.5 bg-gray-100/80 p-1 rounded-2xl border border-gray-200 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setReportFilter("ALL")}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-colors ${
+                    reportFilter === "ALL"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
                 >
-                  <div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <Badge variant="warning">{r.category ? r.category.replace(/_/g, " ") : "INCIDENT"}</Badge>
-                      <span className="text-xs text-gray-400">Report #{r.id.slice(0, 8)}</span>
-                      {r.status && (
-                        <Badge variant={r.status === "RESOLVED" ? "success" : r.status === "DISMISSED" ? "neutral" : "brand"}>
-                          {r.status}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-800 font-semibold mb-1.5">
-                      Filed by <span className="text-brand-700">{r.reporter_name || "Member"}</span> against{" "}
-                      <span className="text-red-700 font-bold">{r.reported_name || "Reported User"}</span>
-                    </div>
-                    <p className="text-xs text-gray-700 font-medium bg-white p-2.5 rounded-xl border border-gray-200 leading-relaxed">
-                      &ldquo;{r.description}&rdquo;
-                    </p>
-                    <p className="text-[11px] text-gray-400 mt-1">
-                      Target User ID: <span className="font-mono">{r.reported_user_id}</span>
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleStatusChange(r.reported_user_id, "BANNED", r.reported_name || "Reported User")}
-                    >
-                      <Ban className="w-3.5 h-3.5 mr-1" /> Block User
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleResolveReport(r.id, "DISMISSED")}>
-                      Dismiss
-                    </Button>
-                    <Button variant="primary" size="sm" onClick={() => handleResolveReport(r.id, "RESOLVED")}>
-                      <CheckCircle className="w-3.5 h-3.5 mr-1" /> Resolve
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                  All ({reports.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReportFilter("PENDING")}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-colors ${
+                    reportFilter === "PENDING"
+                      ? "bg-amber-500 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Pending ({reports.filter((r) => r.status === "PENDING").length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReportFilter("RESOLVED")}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-colors ${
+                    reportFilter === "RESOLVED"
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Closed / Dismissed ({reports.filter((r) => r.status !== "PENDING").length})
+                </button>
+              </div>
             </div>
-          )}
+
+            {filteredReports.length === 0 ? (
+              <div className="text-center py-12 px-4 space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                  <Check className="w-6 h-6" aria-hidden="true" />
+                </div>
+                <h3 className="text-sm font-bold text-gray-800">
+                  {reportFilter === "PENDING"
+                    ? "Zero pending incident reports!"
+                    : "No reports found in this category."}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  The matrimonial community is safe, respectful, and fully moderated.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredReports.map((r) => {
+                  const isResolved = r.status === "RESOLVED";
+                  const isDismissed = r.status === "DISMISSED";
+
+                  return (
+                    <div
+                      key={r.id}
+                      className={`p-5 rounded-3xl border transition-[border-color,background-color] ${
+                        isResolved
+                          ? "border-emerald-200 bg-emerald-50/20"
+                          : isDismissed
+                          ? "border-gray-200 bg-gray-50/40"
+                          : "border-amber-200 bg-amber-50/30"
+                      } flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4`}
+                    >
+                      <div className="space-y-2 max-w-2xl">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="warning">{r.category ? r.category.replace(/_/g, " ") : "INCIDENT"}</Badge>
+                          <span className="text-xs font-mono text-gray-400">#{r.id.slice(0, 8)}</span>
+                          <Badge
+                            variant={
+                              isResolved ? "success" : isDismissed ? "neutral" : "brand"
+                            }
+                          >
+                            {r.status || "PENDING"}
+                          </Badge>
+                          <span className="text-[11px] text-gray-400">
+                            {new Intl.DateTimeFormat("en-IN", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            }).format(new Date(r.created_at))}
+                          </span>
+                        </div>
+
+                        <div className="text-xs text-gray-800 font-semibold">
+                          Complainant: <span className="text-brand-700 font-bold">{r.reporter_name || "Member"}</span>{" "}
+                          • Accused: <span className="text-rose-700 font-bold">{r.reported_name || "Reported User"}</span>
+                        </div>
+
+                        <p className="text-xs text-gray-700 font-medium bg-white p-3 rounded-2xl border border-gray-200 shadow-xs leading-relaxed">
+                          &ldquo;{r.description}&rdquo;
+                        </p>
+
+                        <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                          <span>Target User UUID: <code className="font-mono">{r.reported_user_id}</code></span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+                        {isResolved ? (
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-300 shadow-xs">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-700" aria-hidden="true" />
+                              <span>Resolved</span>
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs text-gray-600 hover:text-gray-900"
+                              onClick={() => handleResolveReport(r.id, "PENDING")}
+                              isLoading={actionInProgress === `${r.id}-pending`}
+                            >
+                              Reopen
+                            </Button>
+                          </div>
+                        ) : isDismissed ? (
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 bg-gray-200/80 px-3 py-1.5 rounded-full border border-gray-300 shadow-xs">
+                              <XCircle className="w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
+                              <span>Dismissed</span>
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs text-gray-600 hover:text-gray-900"
+                              onClick={() => handleResolveReport(r.id, "PENDING")}
+                              isLoading={actionInProgress === `${r.id}-pending`}
+                            >
+                              Reopen
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() =>
+                                handleStatusChange(
+                                  r.reported_user_id,
+                                  "BANNED",
+                                  r.reported_name || "Reported User"
+                                )
+                              }
+                              isLoading={actionInProgress === r.reported_user_id}
+                            >
+                              <Ban className="w-3.5 h-3.5 mr-1" aria-hidden="true" /> Block User
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleResolveReport(r.id, "DISMISSED")}
+                              isLoading={actionInProgress === `${r.id}-dismissed`}
+                              className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                            >
+                              Dismiss
+                            </Button>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleResolveReport(r.id, "RESOLVED")}
+                              isLoading={actionInProgress === `${r.id}-resolved`}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5 mr-1" aria-hidden="true" /> Resolve
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Tab 3: Monetary Plans & Credit Quotas Management */}
+      {activeTab === "plans" && (
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg font-bold font-serif text-gray-900 flex items-center gap-2">
+                <Coins className="w-5 h-5 text-amber-500" aria-hidden="true" />
+                Monetary Plans &amp; Credit Quotas ({adminPlans.length})
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                Moderators and Administrators can modify prices, contact credit allowances, and features directly.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={() => {
+                  setSelectedAdminPlan(null);
+                  setEditPlanModalOpen(true);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-1.5" aria-hidden="true" /> Create New Tier
+              </Button>
+              <Link href="/pricing" target="_blank">
+                <Button variant="outline" size="sm">
+                  View Public Pricing <ArrowUpRight className="w-3.5 h-3.5 ml-1" aria-hidden="true" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {adminPlans.map((p) => (
+              <div
+                key={p.id}
+                className="p-5 rounded-2xl border border-gray-200 bg-slate-50/50 flex flex-col justify-between space-y-4 hover:border-amber-300 transition-[border-color,box-shadow]"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-gray-900 font-serif text-base">{p.name}</span>
+                    <Badge variant={p.is_active ? "success" : "neutral"}>
+                      {p.is_active ? "Active" : "Hidden"}
+                    </Badge>
+                  </div>
+
+                  <div className="text-2xl font-black text-gray-900 font-serif tabular-nums mb-3">
+                    {p.price_cents === 0
+                      ? "Free"
+                      : new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(p.price_cents / 100)}
+                    <span className="text-xs font-normal text-gray-400"> / {p.duration_months} mo</span>
+                  </div>
+
+                  <ul className="text-xs text-gray-600 space-y-1.5 border-t border-gray-200/60 pt-3">
+                    <li className="flex items-center justify-between">
+                      <span>Contact Credits:</span>
+                      <strong className="text-gray-900 tabular-nums">{p.contact_credits_quota} reveals</strong>
+                    </li>
+                    <li className="flex items-center justify-between">
+                      <span>Recommendation Boost:</span>
+                      <strong className="text-gray-900 tabular-nums">{p.priority_boost}x</strong>
+                    </li>
+                    <li className="flex items-center justify-between">
+                      <span>Direct Chat:</span>
+                      <strong>{p.can_initiate_chat ? "Enabled" : "Disabled"}</strong>
+                    </li>
+                    <li className="flex items-center justify-between">
+                      <span>Protected Photos:</span>
+                      <strong>{p.can_view_hidden_photos ? "Enabled" : "Disabled"}</strong>
+                    </li>
+                  </ul>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs font-semibold text-amber-900 hover:bg-amber-50 hover:border-amber-300"
+                  onClick={() => {
+                    setSelectedAdminPlan(p);
+                    setEditPlanModalOpen(true);
+                  }}
+                >
+                  <Edit3 className="w-3.5 h-3.5 mr-1.5 text-amber-600" aria-hidden="true" />
+                  Edit Plan Config
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Plan Edit Modal */}
+      <PlanEditModal
+        isOpen={editPlanModalOpen}
+        onClose={() => setEditPlanModalOpen(false)}
+        plan={selectedAdminPlan}
+        onPlanSaved={(savedPlan) => {
+          setActionNotice({
+            type: "success",
+            text: `Monetary plan "${savedPlan.name}" updated successfully! Price: ₹${Math.round(savedPlan.price_cents / 100)}, Credits: ${savedPlan.contact_credits_quota}.`,
+          });
+          fetchAdminStatsAndReports();
+        }}
+      />
     </div>
   );
 }

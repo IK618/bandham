@@ -10,8 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_current_user, get_db
-from backend.app.models.user import User
+from backend.app.api.deps import get_current_user, get_db, require_roles
+from backend.app.models.user import User, UserRole
 from backend.app.models.plan import (
     Payment,
     PaymentStatusEnum,
@@ -22,7 +22,9 @@ from backend.app.models.plan import (
 from backend.app.schemas.plan import (
     MockCheckoutRequest,
     MockCheckoutResponse,
+    PlanCreate,
     PlanResponse,
+    PlanUpdate,
     SubscriptionResponse,
 )
 
@@ -162,3 +164,106 @@ async def mock_checkout(
         status=PaymentStatusEnum.COMPLETED,
         message=f"Successfully upgraded to {plan.name} plan! {plan.contact_credits_quota} contact credits allocated."
     )
+
+
+@router.patch("/plans/{plan_id}", response_model=PlanResponse)
+async def update_plan(
+    plan_id: str,
+    payload: PlanUpdate,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
+    db: AsyncSession = Depends(get_db)
+):
+    """Allows Administrators and Moderators to modify and edit monetary plans (price, credits, duration, features)."""
+    try:
+        p_uuid = uuid.UUID(plan_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid plan UUID format.")
+
+    plan = (await db.execute(select(Plan).where(Plan.id == p_uuid))).scalars().first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found.")
+
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, val in update_data.items():
+        if val is not None:
+            setattr(plan, field, val)
+
+    await db.commit()
+    await db.refresh(plan)
+
+    return PlanResponse(
+        id=str(plan.id),
+        name=plan.name,
+        duration_months=plan.duration_months,
+        price_cents=plan.price_cents,
+        currency=plan.currency,
+        contact_credits_quota=plan.contact_credits_quota,
+        can_initiate_chat=plan.can_initiate_chat,
+        can_view_hidden_photos=plan.can_view_hidden_photos,
+        priority_boost=plan.priority_boost,
+        is_active=plan.is_active
+    )
+
+
+@router.post("/plans", response_model=PlanResponse, status_code=status.HTTP_201_CREATED)
+async def create_plan(
+    payload: PlanCreate,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
+    db: AsyncSession = Depends(get_db)
+):
+    """Allows Administrators and Moderators to create a new monetary tier."""
+    existing = (await db.execute(select(Plan).where(Plan.name == payload.name))).scalars().first()
+    if existing:
+        raise HTTPException(status_code=400, detail=f"A plan named '{payload.name}' already exists.")
+
+    new_plan = Plan(
+        name=payload.name,
+        duration_months=payload.duration_months,
+        price_cents=payload.price_cents,
+        currency=payload.currency,
+        contact_credits_quota=payload.contact_credits_quota,
+        can_initiate_chat=payload.can_initiate_chat,
+        can_view_hidden_photos=payload.can_view_hidden_photos,
+        priority_boost=payload.priority_boost,
+        is_active=payload.is_active
+    )
+    db.add(new_plan)
+    await db.commit()
+    await db.refresh(new_plan)
+
+    return PlanResponse(
+        id=str(new_plan.id),
+        name=new_plan.name,
+        duration_months=new_plan.duration_months,
+        price_cents=new_plan.price_cents,
+        currency=new_plan.currency,
+        contact_credits_quota=new_plan.contact_credits_quota,
+        can_initiate_chat=new_plan.can_initiate_chat,
+        can_view_hidden_photos=new_plan.can_view_hidden_photos,
+        priority_boost=new_plan.priority_boost,
+        is_active=new_plan.is_active
+    )
+
+
+@router.delete("/plans/{plan_id}", status_code=status.HTTP_200_OK)
+async def deactivate_plan(
+    plan_id: str,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
+    db: AsyncSession = Depends(get_db)
+):
+    """Allows Administrators and Moderators to deactivate a monetary plan."""
+    try:
+        p_uuid = uuid.UUID(plan_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid plan UUID format.")
+
+    plan = (await db.execute(select(Plan).where(Plan.id == p_uuid))).scalars().first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found.")
+
+    if plan.name == "FREE":
+        raise HTTPException(status_code=400, detail="Cannot deactivate the default FREE tier.")
+
+    plan.is_active = False
+    await db.commit()
+    return {"message": f"Plan '{plan.name}' has been deactivated from catalog."}

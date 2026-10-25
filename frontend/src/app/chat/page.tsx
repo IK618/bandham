@@ -19,12 +19,24 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatStreamRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    if (chatStreamRef.current) {
+      chatStreamRef.current.scrollTo({
+        top: chatStreamRef.current.scrollHeight,
+        behavior,
+      });
+    }
   };
+
+  // Ensure window starts at the top when entering the chat page
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, []);
 
   useEffect(() => {
     async function loadConversations() {
@@ -69,9 +81,9 @@ export default function ChatPage() {
     return () => clearInterval(pollTimer);
   }, [activeConv]);
 
-  // Scroll to bottom whenever messages update
+  // Scroll internal stream to bottom whenever messages update (without touching window scroll)
   useEffect(() => {
-    scrollToBottom();
+    scrollToBottom("auto");
   }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -88,8 +100,8 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, sentMsg]);
       setNewText("");
       setTimeout(() => {
-        scrollToBottom();
-        inputRef.current?.focus();
+        scrollToBottom("smooth");
+        inputRef.current?.focus({ preventScroll: true });
       }, 50);
     } catch (err: any) {
       alert(err.message || "Failed to send message.");
@@ -199,7 +211,7 @@ export default function ChatPage() {
               </div>
 
               {/* Chat Messages Stream */}
-              <div className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[500px] overscroll-contain">
+              <div ref={chatStreamRef} className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[500px] overscroll-contain">
                 <div className="text-center my-2">
                   <span className="bg-white border border-gray-200 text-gray-500 text-[11px] px-3 py-1 rounded-full shadow-2xs">
                     Messages are encrypted in transit. Please observe matrimonial decorum.
@@ -233,7 +245,6 @@ export default function ChatPage() {
                     </div>
                   );
                 })}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input Form */}

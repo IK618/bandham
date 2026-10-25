@@ -82,11 +82,11 @@ export function Header() {
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-rose-100 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-rose-100 shadow-sm w-full">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-5 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-2 sm:gap-4 w-full">
           {/* Logo & Brand Identity */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group shrink-0 whitespace-nowrap">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-rose-400 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
               <Heart className="w-5 h-5 fill-white" aria-hidden="true" />
             </div>
@@ -100,53 +100,83 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          {/* Desktop Navigation - Stretched in a single clean line */}
+          <nav className="hidden md:flex items-center gap-1 lg:gap-2 xl:gap-3 2xl:gap-4.5 whitespace-nowrap shrink">
             {currentUser?.isAdmin ? (
               <>
                 <Link
                   href="/admin"
-                  className="text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-full border border-amber-300 flex items-center gap-1.5 transition-colors"
+                  className="text-xs xl:text-sm font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1.5 rounded-full border border-amber-300 flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
                 >
-                  <Shield className="w-4 h-4 text-amber-600" aria-hidden="true" />
-                  Trust &amp; Safety Portal
+                  <Shield className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-amber-600 shrink-0" aria-hidden="true" />
+                  <span>Trust &amp; Safety Portal</span>
                 </Link>
-                <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <Search className="w-4 h-4" aria-hidden="true" />
-                  Browse Profiles
+                <Link
+                  href="/search"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Search className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" aria-hidden="true" />
+                  <span>Browse Profiles</span>
                 </Link>
-                <Link href="/pricing" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
-                  Monetization Plans
+                <Link
+                  href="/pricing"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <span>Monetization Plans</span>
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                <Link
+                  href="/dashboard"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 transition-colors whitespace-nowrap shrink-0"
+                >
                   Dashboard
                 </Link>
-                <Link href="/profile/edit" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                <Link
+                  href="/profile/edit"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 transition-colors whitespace-nowrap shrink-0"
+                >
                   My Profile
                 </Link>
-                <Link href="/matches" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <Sparkles className="w-4 h-4 text-gold-500" aria-hidden="true" />
-                  Today&apos;s Matches
+                <Link
+                  href="/matches"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Sparkles className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-gold-500 shrink-0" aria-hidden="true" />
+                  <span>Today&apos;s Matches</span>
                 </Link>
-                <Link href="/inbox?tab=CONNECTED" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <Users className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-                  Connections
+                <Link
+                  href="/inbox?tab=CONNECTED"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Users className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-emerald-600 shrink-0" aria-hidden="true" />
+                  <span>Connections</span>
                 </Link>
-                <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <Search className="w-4 h-4" aria-hidden="true" />
-                  Search
+                <Link
+                  href="/search"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <Search className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" aria-hidden="true" />
+                  <span>Search</span>
                 </Link>
-                <Link href="/inbox" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                <Link
+                  href="/inbox"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 transition-colors whitespace-nowrap shrink-0"
+                >
                   Inbox
                 </Link>
-                <Link href="/chat" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
-                  <MessageSquare className="w-4 h-4" aria-hidden="true" />
-                  Chat
+                <Link
+                  href="/chat"
+                  className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2 py-1 xl:px-2.5 rounded-lg hover:bg-rose-50/60 flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" aria-hidden="true" />
+                  <span>Chat</span>
                 </Link>
-                <Link href="/pricing" className="text-sm font-semibold text-gold-600 hover:text-gold-700 bg-gold-50 px-3 py-1 rounded-full border border-gold-200 transition-colors">
+                <Link
+                  href="/pricing"
+                  className="text-xs xl:text-sm font-semibold text-gold-700 hover:text-gold-800 bg-gold-50 px-2.5 py-1 rounded-full border border-gold-200 transition-colors whitespace-nowrap shrink-0 shadow-xs"
+                >
                   Upgrade Plans
                 </Link>
               </>
@@ -154,55 +184,55 @@ export function Header() {
           </nav>
 
           {/* Right Action Icons & Auth Profile Menu */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 xl:gap-3 shrink-0 whitespace-nowrap">
             <Link
               href={currentUser?.isAdmin ? "/admin" : "/settings"}
-              className="p-2 text-gray-500 hover:text-brand-600 hover:bg-rose-50 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="p-1.5 xl:p-2 text-gray-500 hover:text-brand-600 hover:bg-rose-50 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 shrink-0"
               title={currentUser?.isAdmin ? "Admin Console" : "Settings & Privacy"}
               aria-label={currentUser?.isAdmin ? "Admin Console" : "Settings and Privacy"}
             >
-              <Shield className="w-5 h-5" aria-hidden="true" />
+              <Shield className="w-4 h-4 xl:w-5 xl:h-5 shrink-0" aria-hidden="true" />
             </Link>
 
             {currentUser ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
                 <Link
                   href={currentUser.isAdmin ? "/admin" : "/dashboard"}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 xl:px-3 xl:py-1.5 rounded-full border transition-colors whitespace-nowrap shrink-0 ${
                     currentUser.isAdmin
                       ? "bg-slate-900 border-slate-700 text-white hover:bg-slate-800"
                       : "bg-rose-50 border-rose-200 text-brand-900 hover:bg-rose-100"
                   }`}
                 >
                   <div
-                    className={`w-6 h-6 rounded-full font-serif font-bold text-xs flex items-center justify-center ${
+                    className={`w-5 h-5 xl:w-6 xl:h-6 rounded-full font-serif font-bold text-[11px] xl:text-xs flex items-center justify-center shrink-0 ${
                       currentUser.isAdmin ? "bg-amber-500 text-slate-900" : "bg-brand-600 text-white"
                     }`}
                   >
                     {currentUser.first_name?.[0] || "U"}
                   </div>
-                  <span className="text-xs font-semibold">{currentUser.first_name}</span>
+                  <span className="text-xs font-semibold whitespace-nowrap">{currentUser.first_name}</span>
                   {currentUser.isAdmin && (
-                    <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full ml-1">
+                    <span className="text-[10px] uppercase font-bold bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full shrink-0">
                       {currentUser.role}
                     </span>
                   )}
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-full border border-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-1 xl:px-3 xl:py-1.5 rounded-full border border-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 whitespace-nowrap shrink-0"
                   title="Log out of Bandham"
                 >
-                  <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+                  <LogOut className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                   <span>Logout</span>
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-brand-600 px-3 py-2">
+              <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
+                <Link href="/login" className="text-xs xl:text-sm font-medium text-gray-700 hover:text-brand-600 px-2.5 py-1.5 whitespace-nowrap shrink-0">
                   Login
                 </Link>
-                <Link href="/register" className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500 transition-[background-color,border-color,color,box-shadow]">
+                <Link href="/register" className="inline-flex items-center justify-center px-3 py-1.5 xl:px-4 xl:py-2 border border-transparent rounded-full shadow-sm text-xs xl:text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500 transition-[background-color,border-color,color,box-shadow] whitespace-nowrap shrink-0">
                   Register Free
                 </Link>
               </div>

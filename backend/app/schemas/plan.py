@@ -22,6 +22,30 @@ class PlanResponse(BaseModel):
     is_active: bool
 
 
+class PlanUpdate(BaseModel):
+    name: Optional[str] = None
+    duration_months: Optional[int] = None
+    price_cents: Optional[int] = None
+    currency: Optional[str] = "INR"
+    contact_credits_quota: Optional[int] = None
+    can_initiate_chat: Optional[bool] = None
+    can_view_hidden_photos: Optional[bool] = None
+    priority_boost: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class PlanCreate(BaseModel):
+    name: str
+    duration_months: int = 3
+    price_cents: int
+    currency: str = "INR"
+    contact_credits_quota: int = 50
+    can_initiate_chat: bool = True
+    can_view_hidden_photos: bool = False
+    priority_boost: int = 2
+    is_active: bool = True
+
+
 class SubscriptionResponse(BaseModel):
     id: str
     plan_id: str
