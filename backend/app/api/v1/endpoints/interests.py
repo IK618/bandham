@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.core.redis import RateLimiter
-from backend.app.models.user import User
+from backend.app.models.user import User, UserRole
 from backend.app.models.profile import Profile
 from backend.app.models.interaction import Interest, InterestStatusEnum
 from backend.app.models.chat import Conversation, ConversationParticipant, Message, MessageStatusEnum
@@ -57,6 +57,12 @@ async def send_interest(
     db: AsyncSession = Depends(get_db)
 ):
     """Sends an Express Interest to a candidate (subject to daily rate limits)."""
+    if current_user.role in [UserRole.ADMIN, UserRole.MODERATOR]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff accounts (Administrators and Moderators) are restricted from sending courtship interests."
+        )
+
     recipient_uuid = uuid.UUID(payload.recipient_id)
     if recipient_uuid == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot send an interest to your own profile.")

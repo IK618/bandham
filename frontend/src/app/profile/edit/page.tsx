@@ -28,6 +28,7 @@ export default function EditProfilePage() {
   // Form Fields State
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [gender, setGender] = useState("FEMALE");
   const [heightCm, setHeightCm] = useState(165);
   const [maritalStatus, setMaritalStatus] = useState("NEVER_MARRIED");
   const [religion, setReligion] = useState("Hindu");
@@ -62,6 +63,7 @@ export default function EditProfilePage() {
         if (prof) {
           setFirstName(prof.first_name || "");
           setLastName(prof.last_name || "");
+          setGender(prof.gender || "FEMALE");
           setHeightCm(prof.height_cm || 165);
           setMaritalStatus(prof.marital_status || "NEVER_MARRIED");
           setReligion(prof.religion || "Hindu");
@@ -112,6 +114,7 @@ export default function EditProfilePage() {
       const payload = {
         first_name: firstName.trim() || "Member",
         last_name: lastName.trim() || "",
+        gender: gender as any,
         height_cm: Number(heightCm) || 165,
         marital_status: maritalStatus,
         religion: religion || "Hindu",
@@ -231,6 +234,19 @@ export default function EditProfilePage() {
                 onChange={(e) => setLastName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Gender *</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 font-medium"
+              >
+                <option value="FEMALE">Female (Bride)</option>
+                <option value="MALE">Male (Groom)</option>
+                <option value="OTHER">Other</option>
+              </select>
             </div>
 
             <div>

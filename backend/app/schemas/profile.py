@@ -95,6 +95,10 @@ class ProfileCreate(ProfileBase):
 
 class ProfileUpdate(BaseModel):
     created_by: Optional[CreatedByEnum] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    gender: Optional[GenderEnum] = None
+    date_of_birth: Optional[date] = None
     height_cm: Optional[int] = Field(None, ge=130, le=220)
     marital_status: Optional[MaritalStatusEnum] = None
     religion: Optional[str] = None

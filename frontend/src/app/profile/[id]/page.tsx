@@ -285,7 +285,16 @@ export default function ProfileDetailPage() {
             </h1>
             <p className="text-xs text-gray-500 font-mono mt-0.5">{profile.profile_id_display}</p>
 
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+              <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                profile.gender === "FEMALE"
+                  ? "bg-rose-100 text-rose-800 border border-rose-200"
+                  : profile.gender === "MALE"
+                  ? "bg-blue-100 text-blue-800 border border-blue-200"
+                  : "bg-purple-100 text-purple-800 border border-purple-200"
+              }`}>
+                {profile.gender === "FEMALE" ? "Female (Bride)" : profile.gender === "MALE" ? "Male (Groom)" : profile.gender}
+              </span>
               <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> ID Verified Member
               </span>
@@ -488,6 +497,12 @@ export default function ProfileDetailPage() {
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
             <h2 className="text-lg font-bold font-serif text-gray-900">Personal &amp; Cultural Heritage</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+              <div>
+                <span className="text-gray-400 block">Gender</span>
+                <span className="font-semibold text-gray-800 text-sm">
+                  {profile.gender === "FEMALE" ? "Female (Bride)" : profile.gender === "MALE" ? "Male (Groom)" : profile.gender || "Not Specified"}
+                </span>
+              </div>
               <div>
                 <span className="text-gray-400 block">Age &amp; Height</span>
                 <span className="font-semibold text-gray-800 text-sm">{profile.age || "--"} Yrs, {profile.height_cm || "--"} cm</span>

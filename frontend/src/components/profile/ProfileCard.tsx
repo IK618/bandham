@@ -97,17 +97,28 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-lg font-bold text-gray-900 font-serif">
-              {profile.first_name} {profile.last_initial || profile.last_name || ""}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-900 font-serif">
+                {profile.first_name} {profile.last_initial || profile.last_name || ""}
+              </h3>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                profile.gender === "FEMALE"
+                  ? "bg-rose-100 text-rose-800 border border-rose-200"
+                  : profile.gender === "MALE"
+                  ? "bg-blue-100 text-blue-800 border border-blue-200"
+                  : "bg-purple-100 text-purple-800 border border-purple-200"
+              }`}>
+                {profile.gender === "FEMALE" ? "Bride" : profile.gender === "MALE" ? "Groom" : profile.gender}
+              </span>
+            </div>
             <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
               <ShieldCheck className="w-3.5 h-3.5" />
               Verified
             </span>
           </div>
 
-          <p className="text-xs text-gray-500 mb-3">
-            {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}&apos;{Math.round((profile.height_cm % 30.48) / 2.54)}&quot; • {profile.religion}, {profile.community}
+          <p className="text-xs text-gray-600 mb-3 font-medium">
+            <span className="capitalize font-bold text-gray-800">{profile.gender ? profile.gender.toLowerCase() : ""}</span> • {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}&apos;{Math.round((profile.height_cm % 30.48) / 2.54)}&quot; • {profile.religion}, {profile.community}
           </p>
 
           <div className="space-y-1.5 text-xs text-gray-600 mb-4">

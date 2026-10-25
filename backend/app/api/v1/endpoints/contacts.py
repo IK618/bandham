@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.core.redis import RateLimiter
-from backend.app.models.user import User
+from backend.app.models.user import User, UserRole
 from backend.app.models.profile import Profile
 from backend.app.models.plan import Subscription, SubscriptionStatusEnum
 from backend.app.models.interaction import ContactView, Interest, InterestStatusEnum
@@ -34,6 +34,19 @@ async def get_contact_status(
     Checks the mutual consent and contact reveal status between the current user and the target profile.
     Returns whether contact details are already revealed, or if mutual consent is PENDING, ACCEPTED, or NOT_REQUESTED.
     """
+    if current_user.role in [UserRole.ADMIN, UserRole.MODERATOR]:
+        return ContactStatusResponse(
+            target_user_id=target_user_id,
+            is_revealed=False,
+            consent_status="NOT_REQUESTED",
+            phone_number=None,
+            email=None,
+            can_reveal=False,
+            direction=None,
+            interest_id=None,
+            contact_credits_remaining=0
+        )
+
     try:
         target_uuid = uuid.UUID(target_user_id)
     except ValueError:
@@ -126,6 +139,12 @@ async def reveal_contact_details(
     Unlocks verified phone and email details strictly under mutual consent and deducting 1 credit.
     Mutual consent requires an accepted Express Interest / Connection Request between both parties.
     """
+    if current_user.role in [UserRole.ADMIN, UserRole.MODERATOR]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff accounts (Administrators and Moderators) are restricted from unlocking member contact details."
+        )
+
     try:
         target_uuid = uuid.UUID(target_user_id)
     except ValueError:
@@ -261,6 +280,12 @@ async def request_contact_sharing(
     Sends a mutual connection & contact sharing request to the candidate.
     Once accepted by the candidate, mutual consent is established.
     """
+    if current_user.role in [UserRole.ADMIN, UserRole.MODERATOR]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Staff accounts (Administrators and Moderators) are restricted from sending connection or contact sharing requests."
+        )
+
     try:
         target_uuid = uuid.UUID(target_user_id)
     except ValueError:
