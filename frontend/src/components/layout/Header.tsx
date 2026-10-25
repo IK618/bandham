@@ -124,6 +124,9 @@ export function Header() {
                 <Link href="/dashboard" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
                   Dashboard
                 </Link>
+                <Link href="/profile/edit" className="text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors">
+                  My Profile
+                </Link>
                 <Link href="/matches" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
                   <Sparkles className="w-4 h-4 text-gold-500" />
                   Today&apos;s Matches
@@ -230,6 +233,9 @@ export function Header() {
             <>
               <Link href="/dashboard" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
                 Dashboard
+              </Link>
+              <Link href="/profile/edit" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                My Profile Portfolio
               </Link>
               <Link href="/matches" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
                 Today&apos;s Matches

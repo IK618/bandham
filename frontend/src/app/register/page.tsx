@@ -27,19 +27,27 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
 
+    const cleanPhone = phoneNumber.replace(/[\s\-\(\)]/g, "");
+    const formattedPhone = cleanPhone.startsWith("+")
+      ? cleanPhone
+      : cleanPhone.length === 10
+      ? `+91${cleanPhone}`
+      : `+${cleanPhone}`;
+
     try {
       await apiClient("/auth/register", {
         method: "POST",
         body: JSON.stringify({
           profile_for: profileFor,
-          first_name: firstName,
-          last_name: lastName,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
           gender: gender,
-          email: email,
-          phone_number: phoneNumber,
+          email: email.trim().toLowerCase(),
+          phone_number: formattedPhone,
           password: password,
         }),
       });
+      setPhoneNumber(formattedPhone);
       // Transition to OTP verification step
       setStep("OTP");
     } catch (err: any) {
@@ -59,10 +67,10 @@ export default function RegisterPage() {
         method: "POST",
         body: JSON.stringify({
           phone_number: phoneNumber,
-          otp_code: otpCode,
+          otp_code: otpCode.trim(),
         }),
       });
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message || "Invalid OTP code. Please enter 123456.");
     } finally {

@@ -90,8 +90,17 @@ export default function DashboardPage() {
               style={{ width: `${profile?.profile_completeness_pct || 75}%` }}
             />
           </div>
+          <Link href="/profile/edit" className="block mt-3">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full bg-white text-brand-900 font-bold hover:bg-rose-50 text-xs shadow-sm border border-white/40"
+            >
+              Edit / Complete Profile ✏️
+            </Button>
+          </Link>
           <p className="text-[11px] text-rose-100 mt-2">
-            Tip: Complete partner preferences to boost match accuracy.
+            Tip: Complete details &amp; preferences to boost match accuracy.
           </p>
         </div>
       </div>

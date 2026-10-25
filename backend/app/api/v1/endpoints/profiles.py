@@ -146,6 +146,59 @@ async def get_my_profile(
     )
 
 
+@router.post("", response_model=ProfileDetailResponse, status_code=status.HTTP_201_CREATED)
+async def create_profile(
+    payload: ProfileCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Creates a new full profile for the authenticated member."""
+    existing = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
+    if existing:
+        raise HTTPException(status_code=400, detail="You already have an active profile. Use PUT /profiles/me to update your details.")
+
+    profile_id_display = f"BDN-{str(uuid.uuid4().int)[:5]}"
+    prof = Profile(
+        user_id=current_user.id,
+        profile_id_display=profile_id_display,
+        created_by=payload.created_by,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        gender=payload.gender,
+        date_of_birth=payload.date_of_birth,
+        height_cm=payload.height_cm,
+        marital_status=payload.marital_status,
+        religion=payload.religion,
+        mother_tongue=payload.mother_tongue,
+        community=payload.community,
+        sub_community=payload.sub_community,
+        gotra=payload.gotra,
+        manglik=payload.manglik,
+        highest_education=payload.highest_education,
+        education_field=payload.education_field,
+        college_name=payload.college_name,
+        employment_sector=payload.employment_sector,
+        occupation=payload.occupation,
+        annual_income_bracket=payload.annual_income_bracket,
+        residence_city=payload.residence_city,
+        residence_state=payload.residence_state,
+        residence_country=payload.residence_country,
+        citizenship=payload.citizenship,
+        family_type=payload.family_type,
+        family_values=payload.family_values,
+        diet=payload.diet,
+        smoking=payload.smoking,
+        drinking=payload.drinking,
+        bio_narrative=payload.bio_narrative,
+        profile_completeness_pct=75,
+        is_searchable=True
+    )
+    db.add(prof)
+    await db.commit()
+    await db.refresh(prof)
+    return await get_my_profile(current_user=current_user, db=db)
+
+
 @router.put("/me", response_model=ProfileDetailResponse)
 async def update_my_profile(
     payload: ProfileUpdate,
@@ -156,7 +209,33 @@ async def update_my_profile(
     query = select(Profile).where(Profile.user_id == current_user.id)
     profile = (await db.execute(query)).scalars().first()
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found.")
+        # Create profile on the fly if user doesn't have one yet
+        profile_id_display = f"BDN-{str(uuid.uuid4().int)[:5]}"
+        profile = Profile(
+            user_id=current_user.id,
+            profile_id_display=profile_id_display,
+            created_by=payload.created_by or CreatedByEnum.SELF,
+            first_name="Member",
+            last_name="",
+            gender=GenderEnum.FEMALE,
+            date_of_birth=date(1998, 1, 1),
+            height_cm=payload.height_cm or 165,
+            marital_status=payload.marital_status or MaritalStatusEnum.NEVER_MARRIED,
+            religion=payload.religion or "Hindu",
+            mother_tongue=payload.mother_tongue or "Hindi",
+            community=payload.community or "General",
+            highest_education=payload.highest_education or "Bachelors",
+            education_field=payload.education_field or "General",
+            occupation=payload.occupation or "Professional",
+            annual_income_bracket=payload.annual_income_bracket or "INR 10-15 LPA",
+            residence_city=payload.residence_city or "Mumbai",
+            residence_state=payload.residence_state or "Maharashtra",
+            bio_narrative=payload.bio_narrative or "Profile under construction. Looking for an understanding and caring life partner.",
+            profile_completeness_pct=40,
+            is_searchable=True
+        )
+        db.add(profile)
+        await db.flush()
 
     update_data = payload.model_dump(exclude_unset=True)
     for field, val in update_data.items():
