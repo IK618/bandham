@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Heart, Search, MessageSquare, Shield, Menu, X, Sparkles, LogOut } from "lucide-react";
+import { Heart, Search, MessageSquare, Shield, Menu, X, Sparkles, LogOut, Users } from "lucide-react";
 import { apiClient } from "@/lib/api";
 
 interface UserProfilePreview {
@@ -131,6 +131,10 @@ export function Header() {
                   <Sparkles className="w-4 h-4 text-gold-500" aria-hidden="true" />
                   Today&apos;s Matches
                 </Link>
+                <Link href="/inbox?tab=CONNECTED" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
+                  <Users className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+                  Connections
+                </Link>
                 <Link href="/search" className="text-sm font-medium text-gray-700 hover:text-brand-600 flex items-center gap-1.5 transition-colors">
                   <Search className="w-4 h-4" aria-hidden="true" />
                   Search
@@ -245,8 +249,12 @@ export function Header() {
               <Link href="/search" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
                 Search Profiles
               </Link>
+              <Link href="/inbox?tab=CONNECTED" onClick={closeMenu} className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
+                <Users className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+                <span>My Connections</span>
+              </Link>
               <Link href="/inbox" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
-                Inbox &amp; Connections
+                Invitations Inbox
               </Link>
               <Link href="/chat" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
                 Messages

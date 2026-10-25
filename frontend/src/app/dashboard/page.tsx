@@ -14,7 +14,8 @@ import {
   AlertCircle,
   RefreshCw,
   LogOut,
-  Edit3
+  Edit3,
+  Users
 } from "lucide-react";
 import { ProfileDetail, ProfileCard as ProfileCardType } from "@/types";
 import { ProfileCard } from "@/components/profile/ProfileCard";
@@ -324,12 +325,12 @@ export default function DashboardPage() {
           <span className="text-xs text-gray-500">Curated top recommendations</span>
         </Link>
 
-        <Link href="/inbox" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-[border-color,box-shadow] flex flex-col items-center text-center group">
-          <div className="w-10 h-10 rounded-full bg-rose-50 text-brand-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-            <Heart className="w-5 h-5" aria-hidden="true" />
+        <Link href="/inbox?tab=CONNECTED" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-emerald-200 transition-[border-color,box-shadow] flex flex-col items-center text-center group">
+          <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+            <Users className="w-5 h-5" aria-hidden="true" />
           </div>
-          <span className="text-sm font-bold text-gray-900 font-serif">Inbox &amp; Interests</span>
-          <span className="text-xs text-gray-500">Pending &amp; accepted</span>
+          <span className="text-sm font-bold text-gray-900 font-serif">My Connections</span>
+          <span className="text-xs text-gray-500">Mutual consent confirmed</span>
         </Link>
 
         <Link href="/shortlist" className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-rose-200 transition-[border-color,box-shadow] flex flex-col items-center text-center group">

@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Heart, Check, X, ArrowUpRight } from "lucide-react";
+import { Heart, Check, X, ArrowUpRight, Users, MessageSquare } from "lucide-react";
 import { InterestItem } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -14,13 +14,17 @@ import { apiClient } from "@/lib/api";
 function InboxContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("tab") === "SENT" ? "SENT" : "RECEIVED";
-  const [tab, setTab] = useState<"RECEIVED" | "SENT">(initialTab);
+  const rawTab = searchParams.get("tab");
+  const initialTab: "CONNECTED" | "RECEIVED" | "SENT" =
+    rawTab === "SENT" ? "SENT" : rawTab === "RECEIVED" ? "RECEIVED" : "CONNECTED";
+
+  const [tab, setTab] = useState<"CONNECTED" | "RECEIVED" | "SENT">(initialTab);
+  const [connected, setConnected] = useState<InterestItem[]>([]);
   const [received, setReceived] = useState<InterestItem[]>([]);
   const [sent, setSent] = useState<InterestItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const switchTab = (newTab: "RECEIVED" | "SENT") => {
+  const switchTab = (newTab: "CONNECTED" | "RECEIVED" | "SENT") => {
     setTab(newTab);
     router.replace(`/inbox?tab=${newTab}`);
   };
@@ -28,8 +32,12 @@ function InboxContent() {
   const fetchInterests = async () => {
     setLoading(true);
     try {
-      const rec = await apiClient<InterestItem[]>("/interests/inbox");
-      const s = await apiClient<InterestItem[]>("/interests/sent");
+      const [conn, rec, s] = await Promise.all([
+        apiClient<InterestItem[]>("/interests/connected"),
+        apiClient<InterestItem[]>("/interests/inbox"),
+        apiClient<InterestItem[]>("/interests/sent"),
+      ]);
+      setConnected(conn);
       setReceived(rec);
       setSent(s);
     } catch (err: any) {
@@ -61,21 +69,36 @@ function InboxContent() {
     }
   };
 
-  const activeList = tab === "RECEIVED" ? received : sent;
+  const activeList = tab === "CONNECTED" ? connected : tab === "RECEIVED" ? received : sent;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold font-serif text-gray-900">
-          Inbox &amp; Connections
+          Connections &amp; Inbox
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Manage incoming expressions of interest and monitor outgoing connection requests
+          Review candidates connected to you by mutual consent and manage incoming/outgoing invitations
         </p>
       </div>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => switchTab("CONNECTED")}
+          className={`py-3 px-6 text-sm font-semibold border-b-2 transition-[color,border-color] flex items-center gap-2 ${
+            tab === "CONNECTED"
+              ? "border-brand-600 text-brand-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <Users className="w-4 h-4" aria-hidden="true" />
+          <span>Connected Members</span>
+          <span className="tabular-nums font-mono text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-bold">
+            {connected.length}
+          </span>
+        </button>
+
         <button
           onClick={() => switchTab("RECEIVED")}
           className={`py-3 px-6 text-sm font-semibold border-b-2 transition-[color,border-color] ${
@@ -84,8 +107,9 @@ function InboxContent() {
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          Received Interests <span className="tabular-nums font-mono">({received.length})</span>
+          Received Invitations <span className="tabular-nums font-mono">({received.length})</span>
         </button>
+
         <button
           onClick={() => switchTab("SENT")}
           className={`py-3 px-6 text-sm font-semibold border-b-2 transition-[color,border-color] ${
@@ -100,14 +124,22 @@ function InboxContent() {
 
       {/* Content */}
       {loading ? (
-        <LoadingSpinner text="Loading invitations…" />
+        <LoadingSpinner text="Loading your matrimonial connections…" />
       ) : activeList.length === 0 ? (
         <EmptyState
-          title={tab === "RECEIVED" ? "No Received Interests Yet" : "No Sent Requests"}
+          title={
+            tab === "CONNECTED"
+              ? "No Connected Members Yet"
+              : tab === "RECEIVED"
+              ? "No Received Interests Yet"
+              : "No Sent Requests"
+          }
           description={
-            tab === "RECEIVED"
-              ? "Profiles you match with will appear here once they express interest."
-              : "Explore matches and send an Express Interest to begin a conversation."
+            tab === "CONNECTED"
+              ? "When you and another member mutually accept an interest, they will appear here with private chat and verified contact details unlocked."
+              : tab === "RECEIVED"
+              ? "Profiles that express interest in you will appear here."
+              : "Explore matches and send an Express Interest to begin a courtship conversation."
           }
           actionText="Find Matches"
           actionHref="/matches"
@@ -115,7 +147,12 @@ function InboxContent() {
       ) : (
         <div className="space-y-4">
           {activeList.map((item) => {
-            const card = tab === "RECEIVED" ? item.sender_profile : item.recipient_profile;
+            const card =
+              tab === "CONNECTED"
+                ? item.sender_profile || item.recipient_profile
+                : tab === "RECEIVED"
+                ? item.sender_profile
+                : item.recipient_profile;
             return (
               <div
                 key={item.id}
@@ -173,8 +210,9 @@ function InboxContent() {
                   )}
                   {item.status === "ACCEPTED" && (
                     <Link href="/chat">
-                      <Button variant="primary" size="sm">
-                        Open Chat
+                      <Button variant="primary" size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                        <MessageSquare className="w-3.5 h-3.5 mr-1.5" aria-hidden="true" />
+                        Chat Now
                       </Button>
                     </Link>
                   )}

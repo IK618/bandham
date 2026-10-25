@@ -7,7 +7,7 @@ manages incoming/outgoing invitation queues, and handles mutual acceptance hands
 import uuid
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_active_user, get_current_user, get_db
@@ -139,6 +139,43 @@ async def get_received_interests(
                 greeting_message=it.greeting_message,
                 created_at=it.created_at,
                 sender_profile=profile_to_card(s_prof) if s_prof else None
+            )
+        )
+    return responses
+
+
+@router.get("/connected", response_model=List[InterestResponse])
+async def get_connected_interests(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Lists all mutually connected matches (ACCEPTED) where current_user is either sender or recipient."""
+    query = (
+        select(Interest)
+        .where(
+            and_(
+                Interest.status == InterestStatusEnum.ACCEPTED,
+                or_(Interest.sender_id == current_user.id, Interest.recipient_id == current_user.id)
+            )
+        )
+        .order_by(Interest.updated_at.desc())
+    )
+    interests = (await db.execute(query)).scalars().all()
+
+    responses: List[InterestResponse] = []
+    for it in interests:
+        other_user_id = it.recipient_id if it.sender_id == current_user.id else it.sender_id
+        other_prof = (await db.execute(select(Profile).where(Profile.user_id == other_user_id))).scalars().first()
+        responses.append(
+            InterestResponse(
+                id=str(it.id),
+                sender_id=str(it.sender_id),
+                recipient_id=str(it.recipient_id),
+                status=it.status,
+                greeting_message=it.greeting_message,
+                created_at=it.created_at,
+                sender_profile=profile_to_card(other_prof) if other_prof else None,
+                recipient_profile=profile_to_card(other_prof) if other_prof else None
             )
         )
     return responses

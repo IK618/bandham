@@ -17,7 +17,9 @@ import {
   Check,
   MessageSquare,
   AlertCircle,
+  Flag,
 } from "lucide-react";
+import { ReportModal } from "@/components/safety/ReportModal";
 import { ProfileDetail, ContactStatusResponse } from "@/types";
 import { CompatibilityBadge } from "@/components/profile/CompatibilityBadge";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +43,7 @@ export default function ProfileDetailPage() {
   const [respondingConsent, setRespondingConsent] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [bannerNotice, setBannerNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   // Fetch profile and contact consent status
   useEffect(() => {
@@ -485,6 +488,22 @@ export default function ProfileDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Safety & Moderation Actions */}
+            <div className="pt-4 mt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 w-full">
+              <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
+                Verified Bandham Profile
+              </span>
+              <button
+                type="button"
+                onClick={() => setReportModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 hover:text-red-600 transition-colors py-1 px-2 rounded-lg hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              >
+                <Flag className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
+                <span>Report Member</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -587,6 +606,14 @@ export default function ProfileDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Safety Report Modal */}
+      <ReportModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        reportedUserId={profile.user_id}
+        reportedUserName={profile.first_name}
+      />
     </div>
   );
 }

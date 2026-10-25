@@ -36,6 +36,8 @@ class ReportResponse(BaseModel):
     description: str
     status: ReportStatusEnum
     created_at: datetime
+    reported_name: Optional[str] = None
+    reporter_name: Optional[str] = None
 
 
 class NotificationResponse(BaseModel):

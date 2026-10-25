@@ -11,8 +11,9 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db
-from backend.app.models.user import User
-from backend.app.models.safety import Block, Notification, Report, ReportStatusEnum
+from backend.app.models.user import User, UserRole, UserStatus
+from backend.app.models.profile import Profile
+from backend.app.models.safety import Block, Notification, NotificationTypeEnum, Report, ReportStatusEnum
 from backend.app.schemas.safety import (
     BlockCreate,
     BlockResponse,
@@ -86,7 +87,7 @@ async def report_user(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Submits an incident report against a user for moderator review."""
+    """Submits an incident report against a user and alerts platform administrators and moderators."""
     target_uuid = uuid.UUID(payload.reported_user_id)
     if target_uuid == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot file a report against yourself.")
@@ -99,6 +100,44 @@ async def report_user(
         status=ReportStatusEnum.PENDING
     )
     db.add(report)
+    await db.flush()
+
+    # Fetch reporter and reported member names
+    reporter_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
+    reporter_name = f"{reporter_prof.first_name} {reporter_prof.last_name}".strip() if reporter_prof else current_user.email
+
+    reported_user = (await db.execute(select(User).where(User.id == target_uuid))).scalars().first()
+    reported_prof = (await db.execute(select(Profile).where(Profile.user_id == target_uuid))).scalars().first()
+    reported_name = f"{reported_prof.first_name} {reported_prof.last_name}".strip() if reported_prof else (reported_user.email if reported_user else str(target_uuid)[:8])
+
+    category_label = payload.category.value.replace("_", " ").title()
+
+    # Alert all active Admins and Moderators
+    staff_users = (await db.execute(
+        select(User).where(
+            User.role.in_([UserRole.ADMIN, UserRole.MODERATOR]),
+            User.status == UserStatus.ACTIVE
+        )
+    )).scalars().all()
+
+    for staff in staff_users:
+        db.add(Notification(
+            user_id=staff.id,
+            title=f"Incident Alert: {category_label}",
+            message=f"{reporter_name} filed an incident report regarding {reported_name} ({category_label}): \"{payload.description[:120]}\"",
+            notification_type=NotificationTypeEnum.SYSTEM,
+            reference_link="/admin?tab=reports"
+        ))
+
+    # Reassure the reporting member
+    db.add(Notification(
+        user_id=current_user.id,
+        title="Incident Report Submitted",
+        message=f"Thank you for helping keep Bandham safe. Our Trust & Safety team has received your report regarding {reported_name} and is investigating.",
+        notification_type=NotificationTypeEnum.SYSTEM,
+        reference_link="/safety"
+    ))
+
     await db.commit()
     await db.refresh(report)
 
@@ -109,7 +148,9 @@ async def report_user(
         category=report.category,
         description=report.description,
         status=report.status,
-        created_at=report.created_at
+        created_at=report.created_at,
+        reported_name=reported_name,
+        reporter_name=reporter_name
     )
 
 

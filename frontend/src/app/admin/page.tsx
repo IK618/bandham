@@ -749,20 +749,31 @@ export default function AdminDashboardPage() {
                   className="p-4 rounded-2xl border border-gray-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
                 >
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="warning">{r.category}</Badge>
-                      <span className="text-xs text-gray-400">Report ID: {r.id.slice(0, 8)}</span>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Badge variant="warning">{r.category ? r.category.replace(/_/g, " ") : "INCIDENT"}</Badge>
+                      <span className="text-xs text-gray-400">Report #{r.id.slice(0, 8)}</span>
+                      {r.status && (
+                        <Badge variant={r.status === "RESOLVED" ? "success" : r.status === "DISMISSED" ? "neutral" : "brand"}>
+                          {r.status}
+                        </Badge>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-700 font-medium">{r.description}</p>
+                    <div className="text-xs text-gray-800 font-semibold mb-1.5">
+                      Filed by <span className="text-brand-700">{r.reporter_name || "Member"}</span> against{" "}
+                      <span className="text-red-700 font-bold">{r.reported_name || "Reported User"}</span>
+                    </div>
+                    <p className="text-xs text-gray-700 font-medium bg-white p-2.5 rounded-xl border border-gray-200 leading-relaxed">
+                      &ldquo;{r.description}&rdquo;
+                    </p>
                     <p className="text-[11px] text-gray-400 mt-1">
-                      Reported User ID: <span className="font-mono">{r.reported_user_id}</span>
+                      Target User ID: <span className="font-mono">{r.reported_user_id}</span>
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => handleStatusChange(r.reported_user_id, "BANNED", "Reported User")}
+                      onClick={() => handleStatusChange(r.reported_user_id, "BANNED", r.reported_name || "Reported User")}
                     >
                       <Ban className="w-3.5 h-3.5 mr-1" /> Block User
                     </Button>

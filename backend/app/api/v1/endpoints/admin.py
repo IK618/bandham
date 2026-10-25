@@ -324,21 +324,34 @@ async def list_moderation_reports(
     admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
     db: AsyncSession = Depends(get_db)
 ):
-    """Retrieves all pending harassment and abuse reports for review."""
+    """Retrieves all harassment and incident reports with party names for review."""
     query = select(Report).order_by(Report.created_at.desc()).limit(50)
     reports = (await db.execute(query)).scalars().all()
-    return [
-        ReportResponse(
-            id=str(r.id),
-            reporter_id=str(r.reporter_id),
-            reported_user_id=str(r.reported_user_id),
-            category=r.category,
-            description=r.description,
-            status=r.status,
-            created_at=r.created_at
+    
+    responses: List[ReportResponse] = []
+    for r in reports:
+        reporter_p = (await db.execute(select(Profile).where(Profile.user_id == r.reporter_id))).scalars().first()
+        reported_p = (await db.execute(select(Profile).where(Profile.user_id == r.reported_user_id))).scalars().first()
+        reporter_u = (await db.execute(select(User).where(User.id == r.reporter_id))).scalars().first()
+        reported_u = (await db.execute(select(User).where(User.id == r.reported_user_id))).scalars().first()
+
+        reporter_name = f"{reporter_p.first_name} {reporter_p.last_name}".strip() if reporter_p else (reporter_u.email if reporter_u else "Member")
+        reported_name = f"{reported_p.first_name} {reported_p.last_name}".strip() if reported_p else (reported_u.email if reported_u else "Member")
+
+        responses.append(
+            ReportResponse(
+                id=str(r.id),
+                reporter_id=str(r.reporter_id),
+                reported_user_id=str(r.reported_user_id),
+                category=r.category,
+                description=r.description,
+                status=r.status,
+                created_at=r.created_at,
+                reported_name=reported_name,
+                reporter_name=reporter_name
+            )
         )
-        for r in reports
-    ]
+    return responses
 
 
 @router.patch("/reports/{report_id}/resolve")

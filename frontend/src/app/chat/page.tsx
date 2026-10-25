@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { MessageSquare, Send, CheckCheck } from "lucide-react";
+import Link from "next/link";
+import { MessageSquare, Send, CheckCheck, Flag } from "lucide-react";
 import { ConversationItem, ChatMessage } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ReportModal } from "@/components/safety/ReportModal";
 import { apiClient } from "@/lib/api";
 
 export default function ChatPage() {
@@ -15,6 +17,7 @@ export default function ChatPage() {
   const [newText, setNewText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -174,8 +177,24 @@ export default function ChatPage() {
                     </p>
                   </div>
                 </div>
-                <div className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-medium">
-                  Connected Connection
+                <div className="flex items-center gap-2">
+                  {activeConv.partner_profile?.id && (
+                    <Link
+                      href={`/profile/${activeConv.partner_profile.id}`}
+                      className="text-xs font-semibold text-brand-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-colors"
+                    >
+                      View Profile
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setReportModalOpen(true)}
+                    className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-red-600 px-2.5 py-1.5 rounded-xl border border-gray-200 hover:bg-red-50 hover:border-red-200 transition-colors"
+                    title="Report Member to Moderators"
+                  >
+                    <Flag className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Report</span>
+                  </button>
                 </div>
               </div>
 
@@ -246,6 +265,15 @@ export default function ChatPage() {
           )}
         </div>
       </div>
+
+      {activeConv?.partner_profile && (
+        <ReportModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          reportedUserId={activeConv.partner_profile.user_id}
+          reportedUserName={activeConv.partner_profile.first_name}
+        />
+      )}
     </div>
   );
 }
