@@ -317,8 +317,9 @@ export default function ProfileDetailPage() {
                       <CheckCircle className="w-4 h-4 text-emerald-600" />
                       Verified Contact (Consent Granted)
                     </p>
-                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                      Unlocked ✓
+                    <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                      <span>Unlocked</span>
+                      <Check className="w-3 h-3 text-emerald-700" aria-hidden="true" />
                     </span>
                   </div>
 
@@ -368,7 +369,8 @@ export default function ProfileDetailPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-brand-900 flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-                      Mutual Consent Confirmed ✓
+                      <span>Mutual Consent Confirmed</span>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
                     </span>
                     <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
                       Accepted
@@ -406,8 +408,9 @@ export default function ProfileDetailPage() {
                   <p className="text-[11px] text-amber-900/90 leading-snug">
                     Your connection &amp; contact sharing request was sent to {profile.first_name}. To protect member privacy, contact details can only be unlocked once {profile.first_name} accepts your request in their Inbox.
                   </p>
-                  <div className="text-[11px] font-medium text-amber-800 bg-amber-100/70 p-2 rounded-xl text-center">
-                    ⏳ Waiting for candidate acceptance
+                  <div className="text-[11px] font-medium text-amber-800 bg-amber-100/70 p-2 rounded-xl flex items-center justify-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-700 animate-pulse" aria-hidden="true" />
+                    <span>Waiting for candidate acceptance</span>
                   </div>
                 </div>
               ) : /* 4. If Candidate Sent Request to Current User (Incoming Consent Invitation) */

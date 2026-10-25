@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, Lock, Mail, ArrowRight } from "lucide-react";
+import { Heart, Lock, Mail, ArrowRight, User, Shield, Scale } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { apiClient } from "@/lib/api";
 
@@ -132,30 +132,34 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => fillCredentials("ananya@bandham.local", "Ananya@12345")}
-                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5"
               >
-                👰 Ananya
+                <User className="w-3.5 h-3.5 text-rose-500 shrink-0" aria-hidden="true" />
+                <span>Ananya</span>
               </button>
               <button
                 type="button"
                 onClick={() => fillCredentials("rohan@bandham.local", "Rohan@12345")}
-                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5"
               >
-                🤵 Rohan
+                <User className="w-3.5 h-3.5 text-blue-500 shrink-0" aria-hidden="true" />
+                <span>Rohan</span>
               </button>
               <button
                 type="button"
                 onClick={() => fillCredentials("admin@bandham.local", "Admin@12345")}
-                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5"
               >
-                🛡️ Admin
+                <Shield className="w-3.5 h-3.5 text-brand-600 shrink-0" aria-hidden="true" />
+                <span>Admin</span>
               </button>
               <button
                 type="button"
                 onClick={() => fillCredentials("moderator@bandham.local", "Moderator@12345")}
-                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm text-center"
+                className="py-1.5 px-2 bg-white rounded-lg border border-amber-200 text-[11px] font-medium text-amber-900 hover:bg-amber-100/50 hover:border-amber-300 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5"
               >
-                ⚖️ Moderator
+                <Scale className="w-3.5 h-3.5 text-purple-600 shrink-0" aria-hidden="true" />
+                <span>Moderator</span>
               </button>
             </div>
             <p className="text-[10px] text-amber-700 text-center">

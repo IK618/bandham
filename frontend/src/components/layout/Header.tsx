@@ -223,8 +223,9 @@ export function Header() {
         <div className="md:hidden border-b border-rose-100 bg-white px-4 pt-2 pb-6 space-y-3 overscroll-contain">
           {currentUser?.isAdmin ? (
             <>
-              <Link href="/admin" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-bold text-amber-800 bg-amber-50">
-                🛡️ Trust &amp; Safety Portal
+              <Link href="/admin" onClick={closeMenu} className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-bold text-amber-800 bg-amber-50">
+                <Shield className="w-4 h-4 text-amber-700 shrink-0" aria-hidden="true" />
+                <span>Trust &amp; Safety Portal</span>
               </Link>
               <Link href="/search" onClick={closeMenu} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-rose-50 hover:text-brand-600">
                 Browse Profiles

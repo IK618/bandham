@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Heart, Star, MapPin, Briefcase, GraduationCap, ShieldCheck, Lock } from "lucide-react";
+import { Heart, Star, MapPin, Briefcase, GraduationCap, ShieldCheck, Lock, Check } from "lucide-react";
 import { ProfileCard as ProfileCardType } from "@/types";
 import { CompatibilityBadge } from "./CompatibilityBadge";
 import { Button } from "../ui/Button";
@@ -156,7 +156,14 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
             isLoading={interestSending}
             disabled={interestSent}
           >
-            {interestSent ? "Interest Sent ✓" : "Send Interest"}
+            {interestSent ? (
+              <span className="inline-flex items-center gap-1">
+                <span>Interest Sent</span>
+                <Check className="w-3.5 h-3.5 inline-block shrink-0" aria-hidden="true" />
+              </span>
+            ) : (
+              "Send Interest"
+            )}
           </Button>
         </div>
       </div>

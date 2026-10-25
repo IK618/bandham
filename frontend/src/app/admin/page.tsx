@@ -17,7 +17,9 @@ import {
   ArrowUpRight,
   Clock,
   XCircle,
-  Check
+  Check,
+  Scale,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -616,6 +618,13 @@ export default function AdminDashboardPage() {
                         {/* Upgrade / Degrade Position */}
                         <td className="py-3.5 pr-3">
                           <div className="flex items-center gap-1.5">
+                            {u.role === "ADMIN" ? (
+                              <Shield className="w-3.5 h-3.5 text-purple-700 shrink-0" aria-hidden="true" />
+                            ) : u.role === "MODERATOR" ? (
+                              <Scale className="w-3.5 h-3.5 text-amber-700 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <User className="w-3.5 h-3.5 text-gray-500 shrink-0" aria-hidden="true" />
+                            )}
                             <select
                               aria-label={`Change position for ${fullName}`}
                               value={u.role}
@@ -631,9 +640,9 @@ export default function AdminDashboardPage() {
                                   : "bg-gray-50 text-gray-800 border-gray-200"
                               }`}
                             >
-                              <option value="MEMBER">👤 Member</option>
-                              <option value="MODERATOR">⚖️ Moderator</option>
-                              <option value="ADMIN">🛡️ Administrator</option>
+                              <option value="MEMBER">Member</option>
+                              <option value="MODERATOR">Moderator</option>
+                              <option value="ADMIN">Administrator</option>
                             </select>
                           </div>
                         </td>

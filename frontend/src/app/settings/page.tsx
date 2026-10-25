@@ -134,8 +134,9 @@ export default function SettingsPage() {
 
           {confirmDeleteOpen && (
             <div className="p-4 bg-white border border-red-300 rounded-xl space-y-3" role="alert">
-              <p className="text-xs font-semibold text-red-900">
-                ⚠️ Are you sure? All profile information, photos, matches, and chats will be permanently erased.
+              <p className="text-xs font-semibold text-red-900 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" aria-hidden="true" />
+                <span>Are you sure? All profile information, photos, matches, and chats will be permanently erased.</span>
               </p>
               <div className="flex gap-2 justify-end">
                 <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteOpen(false)}>

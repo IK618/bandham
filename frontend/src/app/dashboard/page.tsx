@@ -90,14 +90,14 @@ export default function DashboardPage() {
       const user = await apiClient<any>("/auth/me");
       setAuthUser(user);
       if (user.status === "ACTIVE") {
-        setStatusNotice("🎉 Your proposal has been approved! Unlocking your dashboard…");
+        setStatusNotice("Your proposal has been approved! Unlocking your dashboard…");
         setTimeout(() => {
           loadDashboard();
         }, 1200);
       } else if (user.status === "REJECTED") {
         setStatusNotice("Your membership application was declined by the governance committee.");
       } else {
-        setStatusNotice("⏳ Your proposal is still pending manual review by an Administrator or Moderator. Please check back shortly.");
+        setStatusNotice("Your proposal is still pending manual review by an Administrator or Moderator. Please check back shortly.");
       }
     } catch (err: any) {
       setStatusNotice(err.message || "Failed to refresh status.");
@@ -302,9 +302,10 @@ export default function DashboardPage() {
             <Button
               variant="secondary"
               size="sm"
-              className="w-full bg-white text-brand-900 font-bold hover:bg-rose-50 text-xs shadow-sm border border-white/40"
+              className="w-full bg-white text-brand-900 font-bold hover:bg-rose-50 text-xs shadow-sm border border-white/40 inline-flex items-center justify-center gap-1.5"
             >
-              Edit / Complete Profile ✏️
+              <span>Edit / Complete Profile</span>
+              <Edit3 className="w-3.5 h-3.5 inline-block shrink-0" aria-hidden="true" />
             </Button>
           </Link>
           <p className="text-[11px] text-rose-100 mt-2">

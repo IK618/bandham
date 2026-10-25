@@ -131,7 +131,13 @@ function InboxContent() {
                         {card ? `${card.first_name} ${card.last_initial || card.last_name || ""}` : "Member Profile"}
                       </h3>
                       <Badge variant={item.status === "ACCEPTED" ? "success" : item.status === "PENDING" ? "brand" : "neutral"}>
-                        {item.status === "ACCEPTED" ? "Connected (Mutual Consent ✓)" : item.status}
+                        {item.status === "ACCEPTED" ? (
+                          <span className="inline-flex items-center gap-1">
+                            Connected (Mutual Consent <Check className="w-3 h-3 inline-block shrink-0" aria-hidden="true" />)
+                          </span>
+                        ) : (
+                          item.status
+                        )}
                       </Badge>
                     </div>
                     {card && (
