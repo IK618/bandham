@@ -14,6 +14,39 @@ from backend.app.core.security import decode_token
 from backend.app.models.user import User, UserRole, UserStatus
 
 
+async def get_optional_token(
+    authorization: Optional[str] = Header(None),
+    access_token: Optional[str] = Cookie(None)
+) -> Optional[str]:
+    """Extracts the Bearer token or HttpOnly access_token cookie if present, without raising 401."""
+    if authorization and authorization.startswith("Bearer "):
+        return authorization.split(" ")[1]
+    if access_token:
+        return access_token
+    return None
+
+
+async def get_optional_current_user(
+    token: Optional[str] = Depends(get_optional_token),
+    db: AsyncSession = Depends(get_db)
+) -> Optional[User]:
+    """Decodes JWT if present; returns User if authenticated and active, else None for public visitors."""
+    if not token:
+        return None
+    try:
+        payload = decode_token(token)
+        user_id_str: str = payload.get("sub")
+        if not user_id_str:
+            return None
+        user_uuid = uuid.UUID(user_id_str)
+        user = (await db.execute(select(User).where(User.id == user_uuid))).scalars().first()
+        if user and user.status not in [UserStatus.SUSPENDED, UserStatus.BANNED]:
+            return user
+    except Exception:
+        return None
+    return None
+
+
 async def get_token_from_header_or_cookie(
     authorization: Optional[str] = Header(None),
     access_token: Optional[str] = Cookie(None)

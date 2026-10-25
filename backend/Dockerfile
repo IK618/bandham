@@ -15,24 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python requirements (supports both context=backend and context=root)
-COPY requirements.txt* backend/requirements.txt* /app/
-RUN if [ -f /app/requirements.txt ]; then \
-        pip install --no-cache-dir -r /app/requirements.txt; \
-    elif [ -f /app/backend/requirements.txt ]; then \
-        pip install --no-cache-dir -r /app/backend/requirements.txt; \
-    fi
+# Install Python requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code and ensure it is organized under /app/backend
-COPY . /tmp/src
-RUN mkdir -p /app/backend && \
-    if [ -d /tmp/src/backend ]; then \
-        cp -r /tmp/src/backend/* /app/backend/; \
-    else \
-        cp -r /tmp/src/* /app/backend/; \
-    fi && \
-    rm -rf /tmp/src && \
-    chmod +x /app/backend/entrypoint.sh
+# Copy backend application source under /app/backend
+COPY . /app/backend
+RUN chmod +x /app/backend/entrypoint.sh
 
 # Expose default HTTP port
 EXPOSE 8000

@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.api.deps import get_current_user, get_db
+from backend.app.api.deps import get_current_user, get_optional_current_user, get_db
 from backend.app.models.user import User
 from backend.app.models.profile import Profile, GenderEnum, MaritalStatusEnum, DietEnum, ManglikEnum
 from backend.app.models.photo import Photo
@@ -234,12 +234,14 @@ async def search_profiles(
     keyword: Optional[str] = None,
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=50),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Faceted search across candidate profiles with pagination and keyword fuzzy matching."""
-    # Exclude own profile
-    conditions = [Profile.user_id != current_user.id, Profile.is_searchable == True]
+    # Build conditions
+    conditions = [Profile.is_searchable == True]
+    if current_user:
+        conditions.append(Profile.user_id != current_user.id)
 
     if gender:
         conditions.append(Profile.gender == gender)
@@ -267,9 +269,11 @@ async def search_profiles(
     query = select(Profile).where(and_(*conditions)).order_by(Profile.created_at.desc()).offset(offset).limit(limit)
     profiles = (await db.execute(query)).scalars().all()
 
-    # User's preferences for calculating match scores
-    pref_query = select(PartnerPreference).where(PartnerPreference.user_id == current_user.id)
-    my_pref = (await db.execute(pref_query)).scalars().first()
+    # User's preferences for calculating match scores if logged in
+    my_pref = None
+    if current_user:
+        pref_query = select(PartnerPreference).where(PartnerPreference.user_id == current_user.id)
+        my_pref = (await db.execute(pref_query)).scalars().first()
 
     results: List[ProfilePublicCard] = []
     for p in profiles:
