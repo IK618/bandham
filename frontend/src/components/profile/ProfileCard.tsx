@@ -59,8 +59,17 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
       {/* Photo Header & Privacy Shield */}
       <div className="relative h-64 bg-gradient-to-tr from-rose-100 via-rose-50 to-amber-50 flex items-center justify-center overflow-hidden">
         {/* Placeholder Portrait Silhouette / Watermarked Display */}
-        <div className={`w-32 h-32 rounded-full border-4 border-white shadow-lg bg-gradient-to-b from-brand-200 to-rose-300 flex items-center justify-center text-brand-800 font-serif text-3xl font-bold select-none ${profile.is_photo_blurred ? "blur-md" : ""}`}>
-          {(profile.first_name?.[0] || "") + (profile.last_initial?.[0] || profile.last_name?.[0] || "")}
+        <div className={`relative w-32 h-32 rounded-full border-4 border-white shadow-lg bg-gradient-to-b from-brand-200 to-rose-300 flex items-center justify-center text-brand-800 font-serif text-3xl font-bold select-none overflow-hidden ${profile.is_photo_blurred ? "blur-md" : ""}`}>
+          {profile.thumbnail_url && (profile.thumbnail_url.startsWith("data:image/") || profile.thumbnail_url.startsWith("http")) ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={profile.thumbnail_url}
+              alt={profile.first_name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span>{(profile.first_name?.[0] || "") + (profile.last_initial?.[0] || profile.last_name?.[0] || "")}</span>
+          )}
         </div>
 
         {/* Dynamic Watermark Stamp Overlay */}

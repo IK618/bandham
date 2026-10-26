@@ -25,7 +25,7 @@ from backend.app.models.profile import (
     FamilyValuesEnum,
     SmokingDrinkingEnum,
 )
-from backend.app.models.photo import Photo
+from backend.app.models.photo import Photo, PhotoVisibilityEnum
 from backend.app.models.interaction import ContactView
 from backend.app.models.preference import PartnerPreference
 from backend.app.models.safety import Block
@@ -34,6 +34,7 @@ from backend.app.schemas.profile import (
     ProfileDetailResponse,
     ProfilePublicCard,
     ProfileUpdate,
+    ProfilePhotoUploadRequest,
 )
 from backend.app.services.matching_service import MatchingService
 
@@ -279,6 +280,72 @@ async def update_my_profile(
     return await get_my_profile(current_user=current_user, db=db)
 
 
+@router.post("/me/photo", response_model=ProfileDetailResponse)
+async def upload_profile_photo(
+    payload: ProfilePhotoUploadRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Uploads or updates user profile picture from live camera selfie or gallery/files."""
+    if not payload.photo_data or not payload.photo_data.strip():
+        raise HTTPException(status_code=400, detail="Photo data is required.")
+
+    profile = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found.")
+
+    # Remove any existing photos for user
+    existing_photos = (await db.execute(select(Photo).where(Photo.user_id == current_user.id))).scalars().all()
+    for p in existing_photos:
+        await db.delete(p)
+    await db.flush()
+
+    # Create new primary photo record with image data
+    new_photo = Photo(
+        user_id=current_user.id,
+        s3_key_original=payload.photo_data,
+        s3_key_thumbnail=payload.photo_data,
+        s3_key_watermarked=payload.photo_data,
+        is_primary=True,
+        is_approved=True,
+        visibility_mode=PhotoVisibilityEnum.MEMBERS_ONLY,
+        sort_order=0
+    )
+    db.add(new_photo)
+
+    # If captured through camera selfie liveness check, grant verified badge
+    if payload.is_selfie:
+        profile.selfie_verified = True
+        profile.trust_shield_score = (
+            (1 if profile.id_verified else 0) +
+            (1 if profile.selfie_verified else 0) +
+            (1 if profile.employment_verified else 0) +
+            (1 if profile.family_reference_verified else 0)
+        ) * 25
+
+    await db.commit()
+    await db.refresh(profile)
+
+    return await get_my_profile(current_user=current_user, db=db)
+
+
+@router.delete("/me/photo")
+async def delete_profile_photo(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Deletes current profile picture, resetting profile to the default SVG monogram."""
+    photos = (await db.execute(select(Photo).where(Photo.user_id == current_user.id))).scalars().all()
+    for p in photos:
+        await db.delete(p)
+    await db.commit()
+
+    return {
+        "message": "Profile picture removed successfully. Reset to default SVG avatar.",
+        "photo_urls": []
+    }
+
+
 @router.get("/{profile_id}", response_model=ProfileDetailResponse)
 async def get_profile_by_id(
     profile_id: str,
@@ -434,6 +501,16 @@ async def search_profiles(
     )
     profiles = (await db.execute(query)).scalars().all()
 
+    # Fetch photos for profiles
+    user_ids = [p.user_id for p in profiles]
+    user_photos = {}
+    if user_ids:
+        photo_stmt = select(Photo).where(Photo.user_id.in_(user_ids))
+        all_photos = (await db.execute(photo_stmt)).scalars().all()
+        for ph in all_photos:
+            if ph.user_id not in user_photos or ph.is_primary:
+                user_photos[ph.user_id] = ph.s3_key_thumbnail or ph.s3_key_original
+
     # User's preferences for calculating match scores if logged in
     my_pref = None
     if current_user:
@@ -468,7 +545,7 @@ async def search_profiles(
                 diet=p.diet,
                 manglik=p.manglik,
                 bio_narrative=((p.bio_narrative or "")[:160] + "...") if len(p.bio_narrative or "") > 160 else (p.bio_narrative or ""),
-                thumbnail_url=f"photos/user_{str(p.user_id)[:8]}_thumb.webp",
+                thumbnail_url=user_photos.get(p.user_id, None),
                 is_photo_blurred=False,
                 compatibility_score=score,
                 id_verified=bool(p.id_verified),

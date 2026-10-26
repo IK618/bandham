@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.models.user import User, UserRole, UserStatus
 from backend.app.models.profile import Profile
+from backend.app.models.photo import Photo, PhotoVisibilityEnum
 from backend.app.models.chat import Conversation, ConversationParticipant, Message
 from backend.app.models.safety import Block, Notification, NotificationTypeEnum, Report, ReportStatusEnum
 from backend.app.schemas.safety import (
@@ -385,6 +386,25 @@ async def submit_selfie_liveness_check(
 
     if not payload.liveness_confirmed:
         raise HTTPException(status_code=400, detail="Selfie liveness check failed. Please look straight and blink.")
+
+    # Save and keep the captured selfie as the active profile picture
+    if payload.selfie_image_url and payload.selfie_image_url.strip():
+        existing_photos = (await db.execute(select(Photo).where(Photo.user_id == current_user.id))).scalars().all()
+        for p in existing_photos:
+            await db.delete(p)
+        await db.flush()
+
+        new_photo = Photo(
+            user_id=current_user.id,
+            s3_key_original=payload.selfie_image_url,
+            s3_key_thumbnail=payload.selfie_image_url,
+            s3_key_watermarked=payload.selfie_image_url,
+            is_primary=True,
+            is_approved=True,
+            visibility_mode=PhotoVisibilityEnum.MEMBERS_ONLY,
+            sort_order=0
+        )
+        db.add(new_photo)
 
     prof.selfie_verified = True
     prof.trust_shield_score = _calculate_trust_shield_score(prof)

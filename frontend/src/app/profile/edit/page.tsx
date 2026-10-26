@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -17,10 +17,14 @@ import {
   ShieldCheck,
   Camera,
   Check,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { ProfileDetail } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { LiveSelfieModal } from "@/components/profile/LiveSelfieModal";
 import { apiClient } from "@/lib/api";
 
 export default function EditProfilePage() {
@@ -60,6 +64,13 @@ export default function EditProfilePage() {
   const [bioNarrative, setBioNarrative] = useState("");
   const [completenessPct, setCompletenessPct] = useState(50);
   const [isDirty, setIsDirty] = useState(false);
+
+  // 📸 Profile Picture & Avatar States
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [selfieModalOpen, setSelfieModalOpen] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 🛡️ 4-Pillar Trust Shield States
   const [trustScore, setTrustScore] = useState(0);
@@ -131,6 +142,12 @@ export default function EditProfilePage() {
           setFamilyRefs(prof.family_references || []);
           setCompanyInput(prof.occupation || "");
           setDesignationInput(prof.employment_sector || "");
+
+          if (prof.photo_urls && prof.photo_urls.length > 0) {
+            setPhotoUrl(prof.photo_urls[0]);
+          } else {
+            setPhotoUrl(null);
+          }
         }
       } catch (err: any) {
         // If not logged in, redirect to login
@@ -141,6 +158,129 @@ export default function EditProfilePage() {
     }
     loadCurrentProfile();
   }, [router]);
+
+  // 📸 Live Camera Selfie Handler (Captures photo, updates avatar, verifies +25% Trust Shield)
+  const handleLiveSelfieConfirmed = async (dataUrl: string) => {
+    try {
+      const res = await apiClient<ProfileDetail>("/profiles/me/photo", {
+        method: "POST",
+        body: JSON.stringify({
+          photo_data: dataUrl,
+          is_selfie: true,
+        }),
+      });
+      setPhotoUrl(dataUrl);
+      setSelfieVerified(true);
+      setTrustScore(res.trust_shield_score ?? 0);
+      setNotice({
+        type: "success",
+        text: "📸 Live camera selfie saved as your active profile picture! +25% added to Trust Shield.",
+      });
+    } catch (err: any) {
+      setNotice({
+        type: "error",
+        text: err.message || "Failed to save live selfie.",
+      });
+      throw err;
+    }
+  };
+
+  // 📁 Gallery / File Upload Handler
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (JPEG, PNG, WEBP).");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Image is too large. Please select a photo under 10MB.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    setNotice(null);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const rawDataUrl = event.target?.result as string;
+
+        // Optimize image to ideal dimensions on an offscreen canvas
+        const img = new Image();
+        img.onload = async () => {
+          const maxDim = 800;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, w, h);
+          const optimizedDataUrl = canvas.toDataURL("image/jpeg", 0.88);
+
+          const res = await apiClient<ProfileDetail>("/profiles/me/photo", {
+            method: "POST",
+            body: JSON.stringify({
+              photo_data: optimizedDataUrl,
+              is_selfie: false,
+            }),
+          });
+
+          setPhotoUrl(optimizedDataUrl);
+          setNotice({
+            type: "success",
+            text: "📁 Profile picture uploaded successfully from your device!",
+          });
+          setUploadingPhoto(false);
+        };
+        img.src = rawDataUrl;
+      } catch (err: any) {
+        setNotice({
+          type: "error",
+          text: err.message || "Failed to upload photo from files.",
+        });
+        setUploadingPhoto(false);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  // 🗑️ Delete Profile Picture (Reset to default SVG monogram)
+  const handleDeletePhoto = async () => {
+    if (!confirm("Remove your profile picture and reset to the default SVG monogram?")) {
+      return;
+    }
+    setDeletingPhoto(true);
+    setNotice(null);
+    try {
+      await apiClient("/profiles/me/photo", { method: "DELETE" });
+      setPhotoUrl(null);
+      setNotice({
+        type: "success",
+        text: "🗑️ Profile picture removed. Profile has been reset to default SVG monogram.",
+      });
+    } catch (err: any) {
+      setNotice({
+        type: "error",
+        text: err.message || "Failed to remove photo.",
+      });
+    } finally {
+      setDeletingPhoto(false);
+    }
+  };
 
   // Pillar 1: Govt ID verification
   const handleVerifyGovtId = async () => {
@@ -353,6 +493,117 @@ export default function EditProfilePage() {
         </div>
       )}
 
+      {/* 📸 Profile Picture & Portrait Studio */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-xl font-bold font-serif text-gray-900 flex items-center gap-2">
+              <Camera className="w-5 h-5 text-brand-600" /> Profile Picture & Portrait
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              Set your matrimonial portrait via live camera selfie or device gallery upload. You can delete anytime to revert to the default royal monogram.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+              photoUrl ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-amber-50 text-amber-800 border border-amber-200"
+            }`}>
+              {photoUrl ? "✓ Custom Portrait Active" : "Default Royal Monogram Active"}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          {/* Avatar Preview */}
+          <div className="relative shrink-0">
+            {photoUrl ? (
+              <img
+                src={photoUrl}
+                alt={`${firstName} ${lastName}`}
+                className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg ring-2 ring-brand-200"
+              />
+            ) : (
+              <div
+                className="w-28 h-28 rounded-full bg-gradient-to-tr from-brand-600 via-rose-500 to-amber-500 text-white flex items-center justify-center font-serif text-3xl font-bold border-4 border-white shadow-lg ring-2 ring-brand-200 select-none"
+                aria-label="Default Monogram Avatar"
+              >
+                {firstName ? firstName[0]?.toUpperCase() : "M"}{lastName ? lastName[0]?.toUpperCase() : ""}
+              </div>
+            )}
+            {selfieVerified && (
+              <div
+                className="absolute -bottom-1 -right-1 bg-emerald-600 text-white p-1.5 rounded-full shadow-md border-2 border-white"
+                title="Selfie Verified Badge Active"
+              >
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex-1 space-y-3 text-center sm:text-left">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {photoUrl ? "Update or Replace Portrait" : "Add Your Matrimonial Photo"}
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Profiles with genuine photos receive up to 9× more partner matches and express interest acceptances.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-1">
+              {/* Live Selfie Button */}
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setSelfieModalOpen(true)}
+                className="bg-brand-600 hover:bg-brand-700 text-white"
+              >
+                <Camera className="w-4 h-4 mr-1.5" /> Take Live Selfie
+              </Button>
+
+              {/* Gallery / File Upload Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                isLoading={uploadingPhoto}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                <Upload className="w-4 h-4 mr-1.5 text-gray-600" />
+                {uploadingPhoto ? "Uploading…" : "Upload from Gallery"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+
+              {/* Delete / Revert to Default Button */}
+              {photoUrl && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeletePhoto}
+                  disabled={deletingPhoto}
+                  isLoading={deletingPhoto}
+                  className="border-rose-200 text-rose-700 hover:bg-rose-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-1.5 text-rose-600" />
+                  {deletingPhoto ? "Deleting…" : "Delete Photo (Reset to Default)"}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 🛡️ 4-Pillar Trust Shield Verification Hub */}
       <div className="bg-gradient-to-br from-white via-emerald-50/30 to-amber-50/20 p-6 sm:p-8 rounded-3xl border border-emerald-200/80 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-emerald-100">
@@ -464,24 +715,33 @@ export default function EditProfilePage() {
               </span>
             </div>
             {selfieVerified ? (
-              <p className="text-xs text-emerald-800 font-medium">
-                Live biometric 3D facial match confirmed against profile portrait.
-              </p>
-            ) : (
-              <div className="space-y-2 mt-2">
-                <p className="text-[11px] text-gray-500">
-                  Perform live anti-spoofing facial check to prove authentic human profile.
+              <div className="space-y-2">
+                <p className="text-xs text-emerald-800 font-medium">
+                  Live biometric 3D facial match confirmed against profile portrait.
                 </p>
                 <Button
                   type="button"
                   size="sm"
                   variant="outline"
-                  disabled={submittingPillar === "selfie"}
-                  isLoading={submittingPillar === "selfie"}
-                  onClick={handleVerifySelfie}
+                  onClick={() => setSelfieModalOpen(true)}
                   className="w-full text-xs border-emerald-400 text-emerald-800 hover:bg-emerald-50"
                 >
-                  <Camera className="w-3.5 h-3.5 mr-1.5 text-emerald-600" /> Complete Live Selfie Check
+                  <Camera className="w-3.5 h-3.5 mr-1.5 text-emerald-600" /> Retake Live Camera Selfie
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2 mt-2">
+                <p className="text-[11px] text-gray-500">
+                  Perform live anti-spoofing facial check with your camera to prove authentic human profile.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelfieModalOpen(true)}
+                  className="w-full text-xs border-emerald-400 text-emerald-800 hover:bg-emerald-50"
+                >
+                  <Camera className="w-3.5 h-3.5 mr-1.5 text-emerald-600" /> Open Live Camera Selfie
                 </Button>
               </div>
             )}
@@ -1018,6 +1278,13 @@ export default function EditProfilePage() {
           </Button>
         </div>
       </form>
+
+      {/* Live Camera Selfie Modal */}
+      <LiveSelfieModal
+        isOpen={selfieModalOpen}
+        onClose={() => setSelfieModalOpen(false)}
+        onCaptureConfirm={handleLiveSelfieConfirmed}
+      />
     </div>
   );
 }

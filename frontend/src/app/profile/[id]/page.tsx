@@ -284,8 +284,17 @@ export default function ProfileDetailPage() {
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col items-center text-center relative overflow-hidden">
             {/* Watermarked Portrait */}
-            <div className="relative w-48 h-48 rounded-full border-4 border-rose-100 shadow-lg bg-gradient-to-tr from-brand-100 to-rose-200 flex items-center justify-center text-brand-900 font-serif text-5xl font-bold mb-4 overflow-hidden">
-              <span>{initials || "B"}</span>
+            <div className="relative w-48 h-48 rounded-full border-4 border-rose-100 shadow-lg bg-gradient-to-tr from-brand-100 to-rose-200 flex items-center justify-center text-brand-900 font-serif text-5xl font-bold mb-4 overflow-hidden select-none">
+              {profile.photo_urls && profile.photo_urls.length > 0 && (profile.photo_urls[0].startsWith("data:image/") || profile.photo_urls[0].startsWith("http")) ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={profile.photo_urls[0]}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{initials || "B"}</span>
+              )}
               {/* Dynamic Watermark Stamp */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center rotate-[-30deg] opacity-20 text-gray-900 font-mono text-xs font-black uppercase">
                 Bandham Verified • {profile.profile_id_display}

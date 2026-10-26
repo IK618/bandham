@@ -194,6 +194,11 @@ class ProfileDetailResponse(ProfileBase):
     family_references: Optional[List[Dict[str, Any]]] = None
 
 
+class ProfilePhotoUploadRequest(BaseModel):
+    photo_data: str  # Base64 data URL or external URL
+    is_selfie: bool = False
+
+
 # Partner Preference schemas consolidated into profile domain
 class PartnerPreferenceBase(BaseModel):
     min_age: int = Field(default=21, ge=18, le=80)

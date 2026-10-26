@@ -7,7 +7,7 @@ publicly visible, blurred for strangers, or locked until private admission is re
 import enum
 import uuid
 from typing import TYPE_CHECKING
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -34,9 +34,9 @@ class Photo(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         index=True
     )
     
-    s3_key_original: Mapped[str] = mapped_column(String(512), nullable=False)
-    s3_key_thumbnail: Mapped[str] = mapped_column(String(512), nullable=False)
-    s3_key_watermarked: Mapped[str] = mapped_column(String(512), nullable=False)
+    s3_key_original: Mapped[str] = mapped_column(Text, nullable=False)
+    s3_key_thumbnail: Mapped[str] = mapped_column(Text, nullable=False)
+    s3_key_watermarked: Mapped[str] = mapped_column(Text, nullable=False)
     
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     is_approved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
