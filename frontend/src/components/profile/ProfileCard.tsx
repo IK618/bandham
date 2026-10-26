@@ -92,10 +92,10 @@ export const ProfileCard = React.memo(function ProfileCard({ profile, onInterest
           </span>
         </div>
 
-        {/* Shortlist Star Button Top Left */}
+        {/* Shortlist Star Button Top Left (Hit target >=44px) */}
         <button
           onClick={handleToggleShortlist}
-          className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-sm transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${shortlisted ? "bg-amber-500 text-white" : "bg-white/80 text-gray-600 hover:text-amber-500"}`}
+          className={`absolute top-3 left-3 z-10 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full backdrop-blur-sm transition-[background-color,color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 [touch-action:manipulation] ${shortlisted ? "bg-amber-500 text-white" : "bg-white/80 text-gray-600 hover:text-amber-500"}`}
           title={shortlisted ? "Remove from Shortlist" : "Add to Shortlist"}
           aria-label={shortlisted ? `Remove ${profile.first_name} from Shortlist` : `Add ${profile.first_name} to Shortlist`}
         >

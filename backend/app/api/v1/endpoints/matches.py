@@ -7,13 +7,14 @@ and presents top recommendations with clear explanations for why they align with
 import uuid
 from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.models.user import User, UserStatus
 from backend.app.models.profile import Profile, GenderEnum, MaritalStatusEnum
 from backend.app.models.preference import PartnerPreference
+from backend.app.models.safety import Block
 from backend.app.schemas.profile import ProfilePublicCard
 from backend.app.services.matching_service import MatchingService
 from backend.app.api.v1.endpoints.profiles import calculate_age
@@ -65,15 +66,22 @@ async def get_daily_matches(
     # Target gender (opposite gender by default)
     target_gender = GenderEnum.MALE if my_prof.gender == GenderEnum.FEMALE else GenderEnum.FEMALE
 
+    # Exclude blocked users (bidirectional safety barrier)
+    blocked_subq = select(Block.blocked_user_id).where(Block.blocker_id == current_user.id).union(
+        select(Block.blocker_id).where(Block.blocked_user_id == current_user.id)
+    )
+    blocked_ids = (await db.execute(blocked_subq)).scalars().all()
+
     # Candidate query
-    query = select(Profile).where(
-        and_(
-            Profile.user_id != current_user.id,
-            Profile.gender == target_gender,
-            Profile.is_searchable == True
-        )
-    ).limit(100)
-    
+    conditions = [
+        Profile.user_id != current_user.id,
+        Profile.gender == target_gender,
+        Profile.is_searchable == True
+    ]
+    if blocked_ids:
+        conditions.append(Profile.user_id.notin_(blocked_ids))
+
+    query = select(Profile).where(and_(*conditions)).limit(100)
     candidates = (await db.execute(query)).scalars().all()
 
     # Score each candidate
@@ -110,7 +118,7 @@ async def get_daily_matches(
                 residence_state=p.residence_state,
                 diet=p.diet,
                 manglik=p.manglik,
-                bio_narrative=((p.bio_narrative or "")[:160] + "...") if len(p.bio_narrative or "") > 160 else (p.bio_narrative or ""),
+                bio_narrative=((p.bio_narrative or "")[:160] + "…") if len(p.bio_narrative or "") > 160 else (p.bio_narrative or ""),
                 thumbnail_url=f"photos/user_{str(p.user_id)[:8]}_thumb.webp",
                 is_photo_blurred=False,
                 compatibility_score=score

@@ -141,7 +141,7 @@ function SearchContent() {
               name="gender"
               value={gender}
               onChange={(e) => setGender(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-base sm:text-xs [touch-action:manipulation] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 bg-white text-gray-900"
             >
               <option value="">All Genders</option>
               <option value="FEMALE">Female (Bride)</option>
@@ -156,7 +156,7 @@ function SearchContent() {
               name="religion"
               value={religion}
               onChange={(e) => setReligion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-base sm:text-xs [touch-action:manipulation] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 bg-white text-gray-900"
             >
               <option value="">All Religions</option>
               <option value="Hindu">Hindu</option>
@@ -176,7 +176,7 @@ function SearchContent() {
               placeholder="e.g. Bangalore, Mumbai…"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-base sm:text-xs [touch-action:manipulation] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             />
           </div>
 
@@ -187,7 +187,7 @@ function SearchContent() {
               name="diet"
               value={diet}
               onChange={(e) => setDiet(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-base sm:text-xs [touch-action:manipulation] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 bg-white text-gray-900"
             >
               <option value="">All Diets</option>
               <option value="VEGETARIAN">Vegetarian</option>
@@ -204,7 +204,7 @@ function SearchContent() {
               name="weightCategory"
               value={weightCategory}
               onChange={(e) => setWeightCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-base sm:text-xs [touch-action:manipulation] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 bg-white text-gray-900"
             >
               <option value="">All Weights</option>
               <option value="Under 50 kg">Under 50 kg</option>
@@ -226,7 +226,7 @@ function SearchContent() {
               placeholder="e.g. Architect, CA, Tech…"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl text-base sm:text-xs [touch-action:manipulation] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             />
           </div>
         </div>

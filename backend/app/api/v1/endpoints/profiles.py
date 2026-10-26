@@ -495,6 +495,13 @@ async def search_profiles(
     conditions = [Profile.is_searchable == True]
     if current_user:
         conditions.append(Profile.user_id != current_user.id)
+        # Exclude blocked users (bidirectional safety barrier)
+        blocked_subq = select(Block.blocked_user_id).where(Block.blocker_id == current_user.id).union(
+            select(Block.blocker_id).where(Block.blocked_user_id == current_user.id)
+        )
+        blocked_ids = (await db.execute(blocked_subq)).scalars().all()
+        if blocked_ids:
+            conditions.append(Profile.user_id.notin_(blocked_ids))
 
     if gender:
         conditions.append(Profile.gender == gender)
@@ -575,7 +582,7 @@ async def search_profiles(
                 residence_state=p.residence_state,
                 diet=p.diet,
                 manglik=p.manglik,
-                bio_narrative=((p.bio_narrative or "")[:160] + "...") if len(p.bio_narrative or "") > 160 else (p.bio_narrative or ""),
+                bio_narrative=((p.bio_narrative or "")[:160] + "…") if len(p.bio_narrative or "") > 160 else (p.bio_narrative or ""),
                 thumbnail_url=user_photos.get(p.user_id, None),
                 is_photo_blurred=False,
                 compatibility_score=score,

@@ -8,12 +8,13 @@ import uuid
 from datetime import datetime, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.models.user import User
 from backend.app.models.profile import Profile
+from backend.app.models.safety import Block
 from backend.app.models.chat import Conversation, ConversationParticipant, Message, MessageStatusEnum
 from backend.app.schemas.interaction import ConversationResponse, MessageCreate, MessageResponse
 from backend.app.api.v1.endpoints.interests import profile_to_card
@@ -34,28 +35,37 @@ async def get_my_conversations(
         .order_by(Conversation.updated_at.desc())
     )
     conversations = (await db.execute(query)).scalars().all()
+    if not conversations:
+        return []
+
+    conv_ids = [conv.id for conv in conversations]
+
+    # Batch fetch partner participants and profiles in a single join query
+    p_stmt = (
+        select(ConversationParticipant, Profile)
+        .join(Profile, Profile.user_id == ConversationParticipant.user_id, isouter=True)
+        .where(
+            ConversationParticipant.conversation_id.in_(conv_ids),
+            ConversationParticipant.user_id != current_user.id
+        )
+    )
+    p_rows = (await db.execute(p_stmt)).all()
+    partner_profiles = {row[0].conversation_id: row[1] for row in p_rows}
+
+    # Batch fetch the single latest message for each conversation thread
+    last_msg_stmt = (
+        select(Message)
+        .distinct(Message.conversation_id)
+        .where(Message.conversation_id.in_(conv_ids))
+        .order_by(Message.conversation_id, Message.created_at.desc())
+    )
+    last_messages = (await db.execute(last_msg_stmt)).scalars().all()
+    last_msg_map = {msg.conversation_id: msg for msg in last_messages}
 
     responses: List[ConversationResponse] = []
     for conv in conversations:
-        # Find partner participant
-        p_query = select(ConversationParticipant).where(
-            ConversationParticipant.conversation_id == conv.id,
-            ConversationParticipant.user_id != current_user.id
-        )
-        partner_part = (await db.execute(p_query)).scalars().first()
-        partner_prof = None
-        if partner_part:
-            prof_q = select(Profile).where(Profile.user_id == partner_part.user_id)
-            partner_prof = (await db.execute(prof_q)).scalars().first()
-
-        # Last message
-        last_msg_q = (
-            select(Message)
-            .where(Message.conversation_id == conv.id)
-            .order_by(Message.created_at.desc())
-            .limit(1)
-        )
-        last_msg = (await db.execute(last_msg_q)).scalars().first()
+        partner_prof = partner_profiles.get(conv.id)
+        last_msg = last_msg_map.get(conv.id)
 
         last_msg_content = ""
         if last_msg:
@@ -102,6 +112,29 @@ async def get_messages(
     )
     if not membership.scalars().first():
         raise HTTPException(status_code=403, detail="Unauthorized: You are not a participant in this conversation.")
+
+    # Check if communication is blocked with the other participant
+    partner_part = (await db.execute(
+        select(ConversationParticipant).where(
+            ConversationParticipant.conversation_id == conv_uuid,
+            ConversationParticipant.user_id != current_user.id
+        )
+    )).scalars().first()
+
+    if partner_part:
+        is_blocked = (await db.execute(
+            select(Block).where(
+                or_(
+                    and_(Block.blocker_id == current_user.id, Block.blocked_user_id == partner_part.user_id),
+                    and_(Block.blocker_id == partner_part.user_id, Block.blocked_user_id == current_user.id)
+                )
+            )
+        )).scalars().first()
+        if is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Messaging unavailable: Communication between these accounts is restricted."
+            )
 
     query = (
         select(Message)
@@ -206,6 +239,29 @@ async def send_message(
     )
     if not membership.scalars().first():
         raise HTTPException(status_code=403, detail="Unauthorized: You are not a participant in this conversation.")
+
+    # Check if communication is blocked with the other participant
+    partner_part = (await db.execute(
+        select(ConversationParticipant).where(
+            ConversationParticipant.conversation_id == conv_uuid,
+            ConversationParticipant.user_id != current_user.id
+        )
+    )).scalars().first()
+
+    if partner_part:
+        is_blocked = (await db.execute(
+            select(Block).where(
+                or_(
+                    and_(Block.blocker_id == current_user.id, Block.blocked_user_id == partner_part.user_id),
+                    and_(Block.blocker_id == partner_part.user_id, Block.blocked_user_id == current_user.id)
+                )
+            )
+        )).scalars().first()
+        if is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Messaging unavailable: Communication between these accounts is restricted."
+            )
 
     msg = Message(
         conversation_id=conv_uuid,

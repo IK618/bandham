@@ -18,7 +18,7 @@ from backend.app.models.user import User, UserRole
 from backend.app.models.profile import Profile
 from backend.app.models.plan import Subscription, SubscriptionStatusEnum
 from backend.app.models.interaction import ContactView, Interest, InterestStatusEnum
-from backend.app.models.safety import Notification, NotificationTypeEnum
+from backend.app.models.safety import Block, Notification, NotificationTypeEnum
 from backend.app.schemas.interaction import ContactRevealResponse, ContactStatusResponse, InterestResponse
 
 router = APIRouter(prefix="/contacts", tags=["Contact Details Reveal"])
@@ -58,6 +58,18 @@ async def get_contact_status(
     target_user = (await db.execute(select(User).where(User.id == target_uuid))).scalars().first()
     if not target_user:
         raise HTTPException(status_code=404, detail="Target candidate not found.")
+
+    # Check Block Status (bidirectional safety barrier)
+    is_blocked = (await db.execute(
+        select(Block).where(
+            or_(
+                and_(Block.blocker_id == current_user.id, Block.blocked_user_id == target_uuid),
+                and_(Block.blocker_id == target_uuid, Block.blocked_user_id == current_user.id)
+            )
+        )
+    )).scalars().first()
+    if is_blocked:
+        raise HTTPException(status_code=404, detail="Target candidate not found or unavailable.")
 
     # Check active subscription credits
     sub_query = select(Subscription).where(
@@ -156,6 +168,18 @@ async def reveal_contact_details(
     target_user = (await db.execute(select(User).where(User.id == target_uuid))).scalars().first()
     if not target_user:
         raise HTTPException(status_code=404, detail="Target user not found.")
+
+    # Check Block Status (bidirectional safety barrier)
+    is_blocked = (await db.execute(
+        select(Block).where(
+            or_(
+                and_(Block.blocker_id == current_user.id, Block.blocked_user_id == target_uuid),
+                and_(Block.blocker_id == target_uuid, Block.blocked_user_id == current_user.id)
+            )
+        )
+    )).scalars().first()
+    if is_blocked:
+        raise HTTPException(status_code=403, detail="Contact unlock unavailable for this profile.")
 
     # 1. Check if contact has already been revealed in current cycle
     existing_view = (await db.execute(
@@ -297,6 +321,18 @@ async def request_contact_sharing(
     target_user = (await db.execute(select(User).where(User.id == target_uuid))).scalars().first()
     if not target_user:
         raise HTTPException(status_code=404, detail="Target user not found.")
+
+    # Check Block Status (bidirectional safety barrier)
+    is_blocked = (await db.execute(
+        select(Block).where(
+            or_(
+                and_(Block.blocker_id == current_user.id, Block.blocked_user_id == target_uuid),
+                and_(Block.blocker_id == target_uuid, Block.blocked_user_id == current_user.id)
+            )
+        )
+    )).scalars().first()
+    if is_blocked:
+        raise HTTPException(status_code=403, detail="Contact unlock unavailable for this profile.")
 
     # Check existing interest between parties
     existing = await db.execute(

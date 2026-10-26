@@ -117,7 +117,7 @@ async def list_admin_users(
 async def update_user_role(
     user_id: str,
     payload: UpdateUserRoleRequest,
-    admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
+    admin_user: User = Depends(require_roles(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db)
 ):
     """Upgrades or degrades a user position (MEMBER, MODERATOR, ADMIN)."""

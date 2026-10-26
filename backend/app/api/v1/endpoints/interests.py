@@ -16,7 +16,7 @@ from backend.app.models.user import User, UserRole
 from backend.app.models.profile import Profile
 from backend.app.models.interaction import Interest, InterestStatusEnum
 from backend.app.models.chat import Conversation, ConversationParticipant, Message, MessageStatusEnum
-from backend.app.models.safety import Notification, NotificationTypeEnum
+from backend.app.models.safety import Block, Notification, NotificationTypeEnum
 from backend.app.schemas.interaction import InterestCreate, InterestResponse
 from backend.app.api.v1.endpoints.profiles import calculate_age
 from backend.app.schemas.profile import ProfilePublicCard
@@ -68,6 +68,21 @@ async def send_interest(
     recipient_uuid = uuid.UUID(payload.recipient_id)
     if recipient_uuid == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot send an interest to your own profile.")
+
+    # Check Block Status (bidirectional safety barrier)
+    is_blocked = (await db.execute(
+        select(Block).where(
+            or_(
+                and_(Block.blocker_id == current_user.id, Block.blocked_user_id == recipient_uuid),
+                and_(Block.blocker_id == recipient_uuid, Block.blocked_user_id == current_user.id)
+            )
+        )
+    )).scalars().first()
+    if is_blocked:
+        raise HTTPException(
+            status_code=400,
+            detail="Interaction with this profile is restricted."
+        )
 
     # Rate Limiting Check (5 per 24 hours on Free Tier)
     rate_limit_key = f"rate:interest:{str(current_user.id)}:daily"
@@ -129,20 +144,24 @@ async def get_received_interests(
     query = select(Interest).where(Interest.recipient_id == current_user.id).order_by(Interest.created_at.desc())
     interests = (await db.execute(query)).scalars().all()
 
-    responses: List[InterestResponse] = []
-    for it in interests:
-        s_prof = (await db.execute(select(Profile).where(Profile.user_id == it.sender_id))).scalars().first()
-        responses.append(
-            InterestResponse(
-                id=str(it.id),
-                sender_id=str(it.sender_id),
-                recipient_id=str(it.recipient_id),
-                status=it.status,
-                greeting_message=it.greeting_message,
-                created_at=it.created_at,
-                sender_profile=profile_to_card(s_prof) if s_prof else None
-            )
+    sender_ids = list({it.sender_id for it in interests})
+    prof_map = {}
+    if sender_ids:
+        profs = (await db.execute(select(Profile).where(Profile.user_id.in_(sender_ids)))).scalars().all()
+        prof_map = {p.user_id: p for p in profs}
+
+    responses: List[InterestResponse] = [
+        InterestResponse(
+            id=str(it.id),
+            sender_id=str(it.sender_id),
+            recipient_id=str(it.recipient_id),
+            status=it.status,
+            greeting_message=it.greeting_message,
+            created_at=it.created_at,
+            sender_profile=profile_to_card(prof_map[it.sender_id]) if it.sender_id in prof_map else None
         )
+        for it in interests
+    ]
     return responses
 
 
@@ -164,10 +183,17 @@ async def get_connected_interests(
     )
     interests = (await db.execute(query)).scalars().all()
 
+    partner_ids = list({(it.recipient_id if it.sender_id == current_user.id else it.sender_id) for it in interests})
+    prof_map = {}
+    if partner_ids:
+        profs = (await db.execute(select(Profile).where(Profile.user_id.in_(partner_ids)))).scalars().all()
+        prof_map = {p.user_id: p for p in profs}
+
     responses: List[InterestResponse] = []
     for it in interests:
         other_user_id = it.recipient_id if it.sender_id == current_user.id else it.sender_id
-        other_prof = (await db.execute(select(Profile).where(Profile.user_id == other_user_id))).scalars().first()
+        other_prof = prof_map.get(other_user_id)
+        card = profile_to_card(other_prof) if other_prof else None
         responses.append(
             InterestResponse(
                 id=str(it.id),
@@ -176,8 +202,8 @@ async def get_connected_interests(
                 status=it.status,
                 greeting_message=it.greeting_message,
                 created_at=it.created_at,
-                sender_profile=profile_to_card(other_prof) if other_prof else None,
-                recipient_profile=profile_to_card(other_prof) if other_prof else None
+                sender_profile=card,
+                recipient_profile=card
             )
         )
     return responses
@@ -192,20 +218,24 @@ async def get_sent_interests(
     query = select(Interest).where(Interest.sender_id == current_user.id).order_by(Interest.created_at.desc())
     interests = (await db.execute(query)).scalars().all()
 
-    responses: List[InterestResponse] = []
-    for it in interests:
-        r_prof = (await db.execute(select(Profile).where(Profile.user_id == it.recipient_id))).scalars().first()
-        responses.append(
-            InterestResponse(
-                id=str(it.id),
-                sender_id=str(it.sender_id),
-                recipient_id=str(it.recipient_id),
-                status=it.status,
-                greeting_message=it.greeting_message,
-                created_at=it.created_at,
-                recipient_profile=profile_to_card(r_prof) if r_prof else None
-            )
+    recip_ids = list({it.recipient_id for it in interests})
+    prof_map = {}
+    if recip_ids:
+        profs = (await db.execute(select(Profile).where(Profile.user_id.in_(recip_ids)))).scalars().all()
+        prof_map = {p.user_id: p for p in profs}
+
+    responses: List[InterestResponse] = [
+        InterestResponse(
+            id=str(it.id),
+            sender_id=str(it.sender_id),
+            recipient_id=str(it.recipient_id),
+            status=it.status,
+            greeting_message=it.greeting_message,
+            created_at=it.created_at,
+            recipient_profile=profile_to_card(prof_map[it.recipient_id]) if it.recipient_id in prof_map else None
         )
+        for it in interests
+    ]
     return responses
 
 
@@ -221,6 +251,18 @@ async def accept_interest(
 
     if not interest or interest.recipient_id != current_user.id:
         raise HTTPException(status_code=404, detail="Interest invitation not found.")
+
+    # Check Block Status (bidirectional safety barrier)
+    is_blocked = (await db.execute(
+        select(Block).where(
+            or_(
+                and_(Block.blocker_id == current_user.id, Block.blocked_user_id == interest.sender_id),
+                and_(Block.blocker_id == interest.sender_id, Block.blocked_user_id == current_user.id)
+            )
+        )
+    )).scalars().first()
+    if is_blocked:
+        raise HTTPException(status_code=400, detail="Cannot accept interest; user communication is restricted.")
 
     interest.status = InterestStatusEnum.ACCEPTED
 
