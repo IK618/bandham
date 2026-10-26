@@ -7,8 +7,8 @@ while strictly preventing eavesdropping or uninvited third-party entry.
 import enum
 import uuid
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, List
-from sqlalchemy import DateTime, Enum, ForeignKey, Text
+from typing import TYPE_CHECKING, List, Optional
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -92,5 +92,7 @@ class Message(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         nullable=False,
         index=True
     )
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     conversation: Mapped["Conversation"] = relationship("Conversation", back_populates="messages")

@@ -5,6 +5,7 @@ and view in-app notification alerts delivered to their personal bell.
 """
 
 import uuid
+from datetime import datetime, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import and_, select
@@ -13,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.models.user import User, UserRole, UserStatus
 from backend.app.models.profile import Profile
+from backend.app.models.chat import Conversation, ConversationParticipant, Message
 from backend.app.models.safety import Block, Notification, NotificationTypeEnum, Report, ReportStatusEnum
 from backend.app.schemas.safety import (
     BlockCreate,
@@ -87,28 +89,114 @@ async def report_user(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Submits an incident report against a user and alerts platform administrators and moderators."""
+    """Submits an incident report against a user and alerts platform administrators and moderators,
+    compiling full unredacted chat transcripts (including all sender-deleted messages)."""
     target_uuid = uuid.UUID(payload.reported_user_id)
     if target_uuid == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot file a report against yourself.")
 
-    report = Report(
-        reporter_id=current_user.id,
-        reported_user_id=target_uuid,
-        category=payload.category,
-        description=payload.description,
-        status=ReportStatusEnum.PENDING
-    )
-    db.add(report)
-    await db.flush()
-
-    # Fetch reporter and reported member names
+    # 1. Fetch reporter and reported member names
     reporter_prof = (await db.execute(select(Profile).where(Profile.user_id == current_user.id))).scalars().first()
     reporter_name = f"{reporter_prof.first_name} {reporter_prof.last_name}".strip() if reporter_prof else current_user.email
 
     reported_user = (await db.execute(select(User).where(User.id == target_uuid))).scalars().first()
     reported_prof = (await db.execute(select(Profile).where(Profile.user_id == target_uuid))).scalars().first()
     reported_name = f"{reported_prof.first_name} {reported_prof.last_name}".strip() if reported_prof else (reported_user.email if reported_user else str(target_uuid)[:8])
+
+    # 2. Check for conversation and extract complete chat log including deleted messages
+    reporter_convs_q = select(ConversationParticipant.conversation_id).where(ConversationParticipant.user_id == current_user.id)
+    shared_conv_id = (await db.execute(
+        select(ConversationParticipant.conversation_id)
+        .where(
+            ConversationParticipant.user_id == target_uuid,
+            ConversationParticipant.conversation_id.in_(reporter_convs_q)
+        )
+    )).scalars().first()
+
+    chat_transcript = None
+    chat_context = None
+
+    if shared_conv_id:
+        msgs_q = (
+            select(Message)
+            .where(Message.conversation_id == shared_conv_id)
+            .order_by(Message.created_at.asc())
+        )
+        chat_messages = (await db.execute(msgs_q)).scalars().all()
+
+        deleted_count = sum(1 for m in chat_messages if m.is_deleted)
+        
+        # Build structured, unforgeable audit text file
+        now_utc = datetime.now(timezone.utc)
+        lines = [
+            "=" * 80,
+            "BANDHAM MATRIMONIAL PLATFORM - FORENSIC INCIDENT INVESTIGATION LOG",
+            "=" * 80,
+            f"Generated At          : {now_utc.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            f"Incident Category     : {payload.category.value}",
+            f"Reporter              : {reporter_name} (UUID: {current_user.id}, Phone: {current_user.phone_number})",
+            f"Reported Account      : {reported_name} (UUID: {target_uuid}, Phone: {reported_user.phone_number if reported_user else 'N/A'})",
+            f"Conversation UUID     : {shared_conv_id}",
+            f"Total Messages Logged : {len(chat_messages)} (Includes {deleted_count} Deleted Messages)",
+            f"Complainant Statement : \"{payload.description}\"",
+            "=" * 80,
+            "FULL AUDIT LOG (CHRONOLOGICAL ORDER - INCLUDING ALL FIRST-PERSON DELETED MESSAGES)",
+            "=" * 80,
+            ""
+        ]
+
+        sender_names = {
+            current_user.id: reporter_name,
+            target_uuid: reported_name,
+        }
+
+        for idx, m in enumerate(chat_messages, start=1):
+            s_name = sender_names.get(m.sender_id, f"User_{str(m.sender_id)[:6]}")
+            time_str = m.created_at.strftime("%Y-%m-%d %H:%M:%S UTC")
+            
+            if m.is_deleted:
+                del_time_str = m.deleted_at.strftime("%Y-%m-%d %H:%M:%S UTC") if m.deleted_at else "UNKNOWN TIME"
+                lines.append(f"[{time_str}] [MSG-{idx:03d}] [*** DELETED ON {del_time_str} BY SENDER ***] {s_name}:")
+                lines.append(f"    [RECOVERED ORIGINAL TEXT]: {m.content}")
+                lines.append("")
+            else:
+                lines.append(f"[{time_str}] [MSG-{idx:03d}] [ACTIVE] {s_name}:")
+                lines.append(f"    {m.content}")
+                lines.append("")
+
+        lines.extend([
+            "=" * 80,
+            "END OF CHAT AUDIT LOG - AUTOMATICALLY RETRIEVED FROM DATABASE",
+            "This document is an immutable record for Trust & Safety review.",
+            "=" * 80,
+        ])
+
+        chat_transcript = "\n".join(lines)
+        chat_context = {
+            "has_chat": True,
+            "conversation_id": str(shared_conv_id),
+            "total_messages": len(chat_messages),
+            "deleted_messages": deleted_count,
+            "filename": f"chat_audit_report_{target_uuid}.txt"
+        }
+    else:
+        chat_transcript = f"No direct chat history found between {reporter_name} and {reported_name} at the time of report filing."
+        chat_context = {
+            "has_chat": False,
+            "note": "No direct conversation exists between parties."
+        }
+
+    report = Report(
+        reporter_id=current_user.id,
+        reported_user_id=target_uuid,
+        category=payload.category,
+        description=payload.description,
+        attached_chat_context=chat_context,
+        chat_transcript_text=chat_transcript,
+        status=ReportStatusEnum.PENDING
+    )
+    db.add(report)
+    await db.flush()
 
     category_label = payload.category.value.replace("_", " ").title()
 
@@ -120,11 +208,13 @@ async def report_user(
         )
     )).scalars().all()
 
+    chat_notice = f" (Includes complete chat log with {chat_context.get('deleted_messages', 0)} deleted messages)" if chat_context.get("has_chat") else ""
+
     for staff in staff_users:
         db.add(Notification(
             user_id=staff.id,
             title=f"Incident Alert: {category_label}",
-            message=f"{reporter_name} filed an incident report regarding {reported_name} ({category_label}): \"{payload.description[:120]}\"",
+            message=f"{reporter_name} filed an incident report regarding {reported_name} ({category_label}){chat_notice}: \"{payload.description[:120]}\"",
             notification_type=NotificationTypeEnum.SYSTEM,
             reference_link="/admin?tab=reports"
         ))
@@ -133,7 +223,7 @@ async def report_user(
     db.add(Notification(
         user_id=current_user.id,
         title="Incident Report Submitted",
-        message=f"Thank you for helping keep Bandham safe. Our Trust & Safety team has received your report regarding {reported_name} and is investigating.",
+        message=f"Thank you for helping keep Bandham safe. Our Trust & Safety team has received your report regarding {reported_name} along with the complete chat audit log.",
         notification_type=NotificationTypeEnum.SYSTEM,
         reference_link="/safety"
     ))
@@ -150,7 +240,8 @@ async def report_user(
         status=report.status,
         created_at=report.created_at,
         reported_name=reported_name,
-        reporter_name=reporter_name
+        reporter_name=reporter_name,
+        has_transcript=bool(chat_context and chat_context.get("has_chat"))
     )
 
 

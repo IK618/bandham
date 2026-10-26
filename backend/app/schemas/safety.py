@@ -38,6 +38,7 @@ class ReportResponse(BaseModel):
     created_at: datetime
     reported_name: Optional[str] = None
     reporter_name: Optional[str] = None
+    has_transcript: bool = False
 
 
 class NotificationResponse(BaseModel):

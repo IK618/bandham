@@ -7,7 +7,7 @@ enables swift disciplinary suspensions/blocks, and manages staff positions (upgr
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Response
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -338,6 +338,12 @@ async def list_moderation_reports(
         reporter_name = f"{reporter_p.first_name} {reporter_p.last_name}".strip() if reporter_p else (reporter_u.email if reporter_u else "Member")
         reported_name = f"{reported_p.first_name} {reported_p.last_name}".strip() if reported_p else (reported_u.email if reported_u else "Member")
 
+        has_transcript = bool(
+            r.chat_transcript_text and
+            r.attached_chat_context and
+            r.attached_chat_context.get("has_chat")
+        )
+
         responses.append(
             ReportResponse(
                 id=str(r.id),
@@ -348,10 +354,71 @@ async def list_moderation_reports(
                 status=r.status,
                 created_at=r.created_at,
                 reported_name=reported_name,
-                reporter_name=reporter_name
+                reporter_name=reporter_name,
+                has_transcript=has_transcript
             )
         )
     return responses
+
+
+@router.get("/reports/{report_id}/transcript")
+async def download_report_transcript(
+    report_id: str,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
+    db: AsyncSession = Depends(get_db)
+):
+    """Downloads the unredacted full chat log as a .txt file for legal and moderation review."""
+    try:
+        r_uuid = uuid.UUID(report_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid report UUID format.")
+
+    report = (await db.execute(select(Report).where(Report.id == r_uuid))).scalars().first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Incident report not found.")
+
+    filename = f"incident_{report_id[:8]}_chat_audit.txt"
+    if report.attached_chat_context and report.attached_chat_context.get("filename"):
+        filename = report.attached_chat_context.get("filename")
+
+    content = report.chat_transcript_text or "No direct chat history was found for this incident."
+
+    return Response(
+        content=content,
+        media_type="text/plain; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache"
+        }
+    )
+
+
+@router.get("/reports/{report_id}/transcript-preview")
+async def preview_report_transcript(
+    report_id: str,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
+    db: AsyncSession = Depends(get_db)
+):
+    """Returns the chat transcript text for in-app viewing on the admin portal."""
+    try:
+        r_uuid = uuid.UUID(report_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid report UUID format.")
+
+    report = (await db.execute(select(Report).where(Report.id == r_uuid))).scalars().first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Incident report not found.")
+
+    has_chat = bool(report.attached_chat_context and report.attached_chat_context.get("has_chat"))
+    deleted_count = report.attached_chat_context.get("deleted_messages", 0) if report.attached_chat_context else 0
+
+    return {
+        "report_id": str(report.id),
+        "transcript": report.chat_transcript_text or "No chat log available.",
+        "has_chat": has_chat,
+        "deleted_messages_count": deleted_count,
+        "filename": f"incident_{report_id[:8]}_chat_audit.txt"
+    }
 
 
 @router.patch("/reports/{report_id}/resolve")

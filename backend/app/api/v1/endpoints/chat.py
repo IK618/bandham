@@ -57,6 +57,10 @@ async def get_my_conversations(
         )
         last_msg = (await db.execute(last_msg_q)).scalars().first()
 
+        last_msg_content = ""
+        if last_msg:
+            last_msg_content = "This message was deleted" if last_msg.is_deleted else last_msg.content
+
         responses.append(
             ConversationResponse(
                 id=str(conv.id),
@@ -65,9 +69,11 @@ async def get_my_conversations(
                     id=str(last_msg.id),
                     conversation_id=str(last_msg.conversation_id),
                     sender_id=str(last_msg.sender_id),
-                    content=last_msg.content,
+                    content=last_msg_content,
                     status=last_msg.status,
-                    created_at=last_msg.created_at
+                    created_at=last_msg.created_at,
+                    is_deleted=last_msg.is_deleted,
+                    deleted_at=last_msg.deleted_at
                 ) if last_msg else None,
                 unread_count=0,
                 updated_at=conv.updated_at
@@ -116,12 +122,69 @@ async def get_messages(
             id=str(m.id),
             conversation_id=str(m.conversation_id),
             sender_id=str(m.sender_id),
-            content=m.content,
+            content="This message was deleted" if m.is_deleted else m.content,
             status=m.status,
-            created_at=m.created_at
+            created_at=m.created_at,
+            is_deleted=m.is_deleted,
+            deleted_at=m.deleted_at
         )
         for m in messages
     ]
+
+
+@router.delete("/conversations/{conversation_id}/messages/{message_id}", status_code=status.HTTP_200_OK)
+async def delete_message(
+    conversation_id: str,
+    message_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Deletes own sent message in first person. Retains record for audit/investigation."""
+    try:
+        conv_uuid = uuid.UUID(conversation_id)
+        msg_uuid = uuid.UUID(message_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid UUID format.")
+
+    # Verify conversation membership
+    membership = await db.execute(
+        select(ConversationParticipant).where(
+            ConversationParticipant.conversation_id == conv_uuid,
+            ConversationParticipant.user_id == current_user.id
+        )
+    )
+    if not membership.scalars().first():
+        raise HTTPException(status_code=403, detail="Unauthorized: Not a participant in this conversation.")
+
+    # Find the message
+    msg = (await db.execute(
+        select(Message).where(
+            Message.id == msg_uuid,
+            Message.conversation_id == conv_uuid
+        )
+    )).scalars().first()
+
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found.")
+
+    # Enforce first-person deletion: Users can only delete their own chat!
+    if msg.sender_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied: You can only delete your own sent messages."
+        )
+
+    now = datetime.now(timezone.utc)
+    msg.is_deleted = True
+    msg.deleted_at = now
+    await db.commit()
+
+    return {
+        "message": "Message deleted successfully.",
+        "id": str(msg.id),
+        "is_deleted": True,
+        "deleted_at": now.isoformat()
+    }
 
 
 @router.post("/conversations/{conversation_id}/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)

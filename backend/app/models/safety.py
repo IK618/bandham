@@ -107,6 +107,7 @@ class Report(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     description: Mapped[str] = mapped_column(Text, nullable=False)
     attached_chat_context: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    chat_transcript_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[ReportStatusEnum] = mapped_column(
         Enum(ReportStatusEnum, name="report_status_enum"),
         default=ReportStatusEnum.PENDING,

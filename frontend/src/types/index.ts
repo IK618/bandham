@@ -108,6 +108,8 @@ export interface ChatMessage {
   content: string;
   status: "SENT" | "DELIVERED" | "READ";
   created_at: string;
+  is_deleted?: boolean;
+  deleted_at?: string;
 }
 
 export interface ConversationItem {

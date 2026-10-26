@@ -107,7 +107,7 @@ export function ReportModal({
                 Report Submitted to Governance
               </h2>
               <p className="text-xs text-gray-600 max-w-sm mx-auto leading-relaxed">
-                Thank you for helping keep Bandham authentic and safe. Our platform <strong>Administrators and Moderators</strong> have been notified to review this issue immediately.
+                Thank you for helping keep Bandham authentic and safe. Our platform <strong>Administrators and Moderators</strong> have been notified along with the complete, unredacted chat audit log (including any deleted messages) for investigation.
               </p>
             </div>
             {blockUser && (

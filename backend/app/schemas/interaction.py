@@ -74,6 +74,8 @@ class MessageResponse(BaseModel):
     content: str
     status: MessageStatusEnum
     created_at: datetime
+    is_deleted: bool = False
+    deleted_at: Optional[datetime] = None
 
 
 class ConversationResponse(BaseModel):

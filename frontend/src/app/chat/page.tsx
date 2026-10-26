@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { MessageSquare, Send, CheckCheck, Flag } from "lucide-react";
+import { MessageSquare, Send, CheckCheck, Flag, Trash2, ShieldAlert } from "lucide-react";
 import { ConversationItem, ChatMessage } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -18,6 +18,8 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [deletingMsgId, setDeletingMsgId] = useState<string | null>(null);
+  const [reportSubmittedNotice, setReportSubmittedNotice] = useState<string | null>(null);
 
   const chatStreamRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -107,6 +109,30 @@ export default function ChatPage() {
       alert(err.message || "Failed to send message.");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteOwnMessage = async (messageId: string) => {
+    if (!activeConv) return;
+    if (!confirm("Are you sure you want to delete this message?")) return;
+
+    setDeletingMsgId(messageId);
+    try {
+      await apiClient(`/chat/conversations/${activeConv.id}/messages/${messageId}`, {
+        method: "DELETE"
+      });
+      // Optimistically update message in conversation stream
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, is_deleted: true, content: "This message was deleted" }
+            : m
+        )
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to delete message.");
+    } finally {
+      setDeletingMsgId(null);
     }
   };
 
@@ -210,36 +236,86 @@ export default function ChatPage() {
                 </div>
               </div>
 
+              {/* Report Confirmation Banner */}
+              {reportSubmittedNotice && (
+                <div role="status" aria-live="polite" className="p-3 bg-amber-50 border-b border-amber-200 text-amber-900 text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
+                    <span>{reportSubmittedNotice}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setReportSubmittedNotice(null)}
+                    className="text-amber-800 font-bold ml-2 text-sm hover:text-amber-950"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
               {/* Chat Messages Stream */}
               <div ref={chatStreamRef} className="flex-1 p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[500px] overscroll-contain">
                 <div className="text-center my-2">
                   <span className="bg-white border border-gray-200 text-gray-500 text-[11px] px-3 py-1 rounded-full shadow-2xs">
-                    Messages are encrypted in transit. Please observe matrimonial decorum.
+                    Messages are encrypted in transit. You can delete your own messages; reported incident audits retain all history.
                   </span>
                 </div>
 
                 {messages.map((m) => {
                   const isOwn = m.sender_id !== activeConv.partner_profile?.user_id;
+                  const isDeleted = Boolean(m.is_deleted);
+
                   return (
                     <div
                       key={m.id}
-                      className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
+                      className={`flex flex-col group ${isOwn ? "items-end" : "items-start"}`}
                     >
-                      <div
-                        className={`max-w-md px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-2xs ${
-                          isOwn
-                            ? "bg-brand-600 text-white rounded-br-xs"
-                            : "bg-white text-gray-800 border border-gray-100 rounded-bl-xs"
-                        }`}
-                      >
-                        {m.content}
+                      <div className="relative flex items-center gap-1.5">
+                        {/* First-person delete button: users can delete their own chat messages */}
+                        {isOwn && !isDeleted && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteOwnMessage(m.id)}
+                            disabled={deletingMsgId === m.id}
+                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-opacity cursor-pointer"
+                            title="Delete your message"
+                            aria-label="Delete your message"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                          </button>
+                        )}
+
+                        <div
+                          className={`max-w-md px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-2xs ${
+                            isDeleted
+                              ? isOwn
+                                ? "bg-rose-50/70 border border-rose-200 text-rose-800/80 italic rounded-br-xs text-xs"
+                                : "bg-gray-100 border border-gray-200 text-gray-500 italic rounded-bl-xs text-xs"
+                              : isOwn
+                              ? "bg-brand-600 text-white rounded-br-xs"
+                              : "bg-white text-gray-800 border border-gray-100 rounded-bl-xs"
+                          }`}
+                        >
+                          {isDeleted ? (
+                            <div className="flex items-center gap-1.5">
+                              <Trash2 className="w-3 h-3 text-gray-400 shrink-0" aria-hidden="true" />
+                              <span>{isOwn ? "You deleted this message" : "This message was deleted"}</span>
+                            </div>
+                          ) : (
+                            m.content
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-400">
+
+                      <div className="flex items-center gap-1.5 mt-1 text-[10px] text-gray-400">
                         <span className="tabular-nums">
                           {new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "numeric", hour12: true }).format(new Date(m.created_at))}
                         </span>
-                        {isOwn && (
+                        {isOwn && !isDeleted && (
                           <CheckCheck className={`w-3.5 h-3.5 ${m.status === "READ" ? "text-blue-500" : "text-gray-400"}`} aria-hidden="true" />
+                        )}
+                        {isDeleted && (
+                          <span className="text-[10px] text-gray-400">(Deleted)</span>
                         )}
                       </div>
                     </div>
@@ -283,6 +359,11 @@ export default function ChatPage() {
           onClose={() => setReportModalOpen(false)}
           reportedUserId={activeConv.partner_profile.user_id}
           reportedUserName={activeConv.partner_profile.first_name}
+          onReportSubmitted={() => {
+            setReportSubmittedNotice(
+              `Incident report submitted regarding ${activeConv.partner_profile?.first_name}. The complete forensic chat audit transcript (including any deleted messages) has been dispatched to platform administrators.`
+            );
+          }}
         />
       )}
     </div>
