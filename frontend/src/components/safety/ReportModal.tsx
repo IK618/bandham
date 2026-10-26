@@ -188,11 +188,16 @@ export function ReportModal({
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                      handleSubmit(e);
+                    }
+                  }}
                   placeholder="Please describe what happened in detail (minimum 10 characters)…"
-                  className="w-full text-xs text-gray-900 border border-gray-300 rounded-xl p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 leading-relaxed"
+                  className="w-full text-base sm:text-xs text-gray-900 border border-gray-300 rounded-xl p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 leading-relaxed [touch-action:manipulation]"
                 />
                 <div className="flex justify-between items-center text-[10px] text-gray-400">
-                  <span>Admins &amp; Moderators will review this dossier confidentially.</span>
+                  <span>Admins &amp; Moderators will review this dossier confidentially (⌘/Ctrl+Enter to submit).</span>
                   <span>{description.length}/1000</span>
                 </div>
               </div>

@@ -62,7 +62,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
+          <div role="alert" aria-live="polite" className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
             {error}
           </div>
         )}
@@ -73,7 +73,7 @@ export default function LoginPage() {
               Registered Email or Phone Number
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3" aria-hidden="true" />
+              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" aria-hidden="true" />
               <input
                 id="emailOrPhone"
                 name="emailOrPhone"
@@ -84,7 +84,7 @@ export default function LoginPage() {
                 value={emailOrPhone}
                 onChange={(e) => setEmailOrPhone(e.target.value)}
                 placeholder="ananya@bandham.local or +919876543210…"
-                className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+                className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl text-base sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 [touch-action:manipulation]"
               />
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function LoginPage() {
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3" aria-hidden="true" />
+              <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" aria-hidden="true" />
               <input
                 id="password"
                 name="password"
@@ -104,7 +104,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+                className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl text-base sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 [touch-action:manipulation]"
               />
             </div>
           </div>

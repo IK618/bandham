@@ -45,6 +45,15 @@ export default function ProfileDetailPage() {
   const [bannerNotice, setBannerNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
+  // Sync document title to candidate profile context
+  useEffect(() => {
+    if (profile?.first_name) {
+      document.title = `${profile.first_name} ${profile.last_name || ""} (${profile.profile_id_display || "Candidate"}) - Bandham`;
+    } else {
+      document.title = "Candidate Profile - Bandham";
+    }
+  }, [profile]);
+
   // Fetch profile and contact consent status
   useEffect(() => {
     if (!profileId) return;

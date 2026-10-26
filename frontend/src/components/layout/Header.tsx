@@ -219,8 +219,9 @@ export function Header() {
                   )}
                 </Link>
                 <button
+                  type="button"
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-1 xl:px-3 xl:py-1.5 rounded-full border border-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-1 xl:px-3 xl:py-1.5 rounded-full border border-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 whitespace-nowrap shrink-0 [touch-action:manipulation]"
                   title="Log out of Bandham"
                 >
                   <LogOut className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
@@ -242,9 +243,12 @@ export function Header() {
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-gray-600 hover:text-brand-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="p-2 rounded-md text-gray-600 hover:text-brand-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 [touch-action:manipulation]"
               aria-label="Toggle Navigation Menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
             </button>
@@ -254,7 +258,7 @@ export function Header() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-rose-100 bg-white px-4 pt-2 pb-6 space-y-3 overscroll-contain">
+        <div id="mobile-navigation" className="md:hidden border-b border-rose-100 bg-white px-4 pt-2 pb-6 space-y-3 overscroll-contain">
           {currentUser?.isAdmin ? (
             <>
               <Link href="/admin" onClick={closeMenu} className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-bold text-amber-800 bg-amber-50">

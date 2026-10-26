@@ -99,9 +99,16 @@ export default function PricingPage() {
 
       {/* Status & Confirmation Notice */}
       {statusNotice && (
-        <div role="status" className="max-w-3xl mx-auto p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium flex items-center justify-between shadow-sm">
+        <div role="status" aria-live="polite" className="max-w-3xl mx-auto p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium flex items-center justify-between shadow-sm">
           <span>{statusNotice}</span>
-          <button onClick={() => setStatusNotice(null)} className="text-emerald-700 font-bold ml-2">×</button>
+          <button
+            type="button"
+            onClick={() => setStatusNotice(null)}
+            className="text-emerald-700 font-bold ml-2 min-w-[28px] min-h-[28px] flex items-center justify-center rounded-lg hover:bg-emerald-100/80 transition-colors [touch-action:manipulation]"
+            aria-label="Dismiss notice"
+          >
+            ×
+          </button>
         </div>
       )}
 

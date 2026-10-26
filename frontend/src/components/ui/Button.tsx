@@ -14,6 +14,7 @@ export function Button({
   isLoading = false,
   className,
   disabled,
+  type = "button",
   ...props
 }: ButtonProps) {
   // Base styles adhering to Vercel interaction guidelines:
@@ -81,13 +82,15 @@ export function Button({
   };
 
   const sizeStyles = {
-    sm: "px-3.5 py-1.5 text-xs min-h-[34px] sm:min-h-[36px]",
+    // Vercel standard: expanded touch area (>=44px) on mobile via after:-inset-1.5
+    sm: "px-3.5 py-1.5 text-xs min-h-[34px] sm:min-h-[36px] after:absolute after:-inset-1.5 after:content-['']",
     md: "px-5 py-2.5 text-sm min-h-[44px]", // Vercel standard: >=44px mobile touch target
     lg: "px-7 py-3.5 text-base min-h-[50px] font-semibold",
   };
 
   return (
     <button
+      type={type}
       className={clsx(baseStyles, variantStyles[variant], sizeStyles[size], className)}
       disabled={disabled || isLoading}
       {...props}

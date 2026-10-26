@@ -19,10 +19,21 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [deletingMsgId, setDeletingMsgId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [chatNotice, setChatNotice] = useState<{ type: "error" | "info"; text: string } | null>(null);
   const [reportSubmittedNotice, setReportSubmittedNotice] = useState<string | null>(null);
 
   const chatStreamRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync document title to active conversation context
+  useEffect(() => {
+    if (activeConv?.partner_profile?.first_name) {
+      document.title = `Chat with ${activeConv.partner_profile.first_name} - Bandham`;
+    } else {
+      document.title = "Direct Messaging - Bandham";
+    }
+  }, [activeConv]);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     if (chatStreamRef.current) {
@@ -101,21 +112,21 @@ export default function ChatPage() {
       });
       setMessages((prev) => [...prev, sentMsg]);
       setNewText("");
+      setChatNotice(null);
       setTimeout(() => {
         scrollToBottom("smooth");
         inputRef.current?.focus({ preventScroll: true });
       }, 50);
     } catch (err: any) {
-      alert(err.message || "Failed to send message.");
+      setChatNotice({ type: "error", text: err.message || "Failed to send message. Please try again." });
     } finally {
       setSending(false);
     }
   };
 
-  const handleDeleteOwnMessage = async (messageId: string) => {
+  const executeDeleteMessage = async (messageId: string) => {
     if (!activeConv) return;
-    if (!confirm("Are you sure you want to delete this message?")) return;
-
+    setConfirmDeleteId(null);
     setDeletingMsgId(messageId);
     try {
       await apiClient(`/chat/conversations/${activeConv.id}/messages/${messageId}`, {
@@ -129,8 +140,9 @@ export default function ChatPage() {
             : m
         )
       );
+      setChatNotice(null);
     } catch (err: any) {
-      alert(err.message || "Failed to delete message.");
+      setChatNotice({ type: "error", text: err.message || "Failed to delete message." });
     } finally {
       setDeletingMsgId(null);
     }
@@ -273,16 +285,37 @@ export default function ChatPage() {
                       <div className="relative flex items-center gap-1.5">
                         {/* First-person delete button: users can delete their own chat messages */}
                         {isOwn && !isDeleted && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteOwnMessage(m.id)}
-                            disabled={deletingMsgId === m.id}
-                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-opacity cursor-pointer"
-                            title="Delete your message"
-                            aria-label="Delete your message"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                          </button>
+                          confirmDeleteId === m.id ? (
+                            <div className="flex items-center gap-1.5 bg-white border border-red-300 px-2 py-0.5 rounded-full shadow-sm text-xs animate-in fade-in duration-150">
+                              <span className="text-red-700 font-semibold text-[11px]">Delete?</span>
+                              <button
+                                type="button"
+                                onClick={() => executeDeleteMessage(m.id)}
+                                disabled={deletingMsgId === m.id}
+                                className="text-red-600 hover:text-red-800 font-bold px-1 py-0.5 rounded hover:bg-red-50 [touch-action:manipulation]"
+                              >
+                                {deletingMsgId === m.id ? "…" : "Yes"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="text-gray-500 hover:text-gray-800 px-1 py-0.5 rounded hover:bg-gray-100 [touch-action:manipulation]"
+                              >
+                                No
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteId(m.id)}
+                              disabled={deletingMsgId === m.id}
+                              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-opacity cursor-pointer [touch-action:manipulation]"
+                              title="Delete your message"
+                              aria-label="Delete your message"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                            </button>
+                          )
                         )}
 
                         <div
@@ -323,6 +356,25 @@ export default function ChatPage() {
                 })}
               </div>
 
+              {/* Polite inline error notification */}
+              {chatNotice && (
+                <div
+                  role="alert"
+                  aria-live="polite"
+                  className="px-4 py-2 bg-red-50 border-t border-red-200 text-xs text-red-700 flex justify-between items-center"
+                >
+                  <span>{chatNotice.text}</span>
+                  <button
+                    type="button"
+                    onClick={() => setChatNotice(null)}
+                    className="text-red-700 hover:text-red-900 font-bold px-2 py-0.5 rounded hover:bg-red-100 min-w-[24px] min-h-[24px] flex items-center justify-center [touch-action:manipulation]"
+                    aria-label="Dismiss error notification"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
               {/* Message Input Form */}
               <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-100 flex items-center gap-2">
                 <label htmlFor="chatMessageInput" className="sr-only">
@@ -338,7 +390,7 @@ export default function ChatPage() {
                   placeholder="Type a respectful message…"
                   value={newText}
                   onChange={(e) => setNewText(e.target.value)}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full text-sm focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full text-base sm:text-sm focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none [touch-action:manipulation]"
                 />
                 <Button type="submit" variant="primary" size="md" isLoading={sending}>
                   <Send className="w-4 h-4 mr-1" aria-hidden="true" /> Send
