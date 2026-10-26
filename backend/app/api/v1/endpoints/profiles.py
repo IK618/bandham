@@ -277,7 +277,7 @@ async def get_profile_by_id(
     # Check if profile_id is UUID or BDN display ID
     try:
         prof_uuid = uuid.UUID(profile_id)
-        query = select(Profile).where(Profile.id == prof_uuid)
+        query = select(Profile).where(or_(Profile.id == prof_uuid, Profile.user_id == prof_uuid))
     except ValueError:
         query = select(Profile).where(Profile.profile_id_display == profile_id)
 

@@ -19,6 +19,7 @@ function InboxContent() {
     rawTab === "SENT" ? "SENT" : rawTab === "RECEIVED" ? "RECEIVED" : "CONNECTED";
 
   const [tab, setTab] = useState<"CONNECTED" | "RECEIVED" | "SENT">(initialTab);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [connected, setConnected] = useState<InterestItem[]>([]);
   const [received, setReceived] = useState<InterestItem[]>([]);
   const [sent, setSent] = useState<InterestItem[]>([]);
@@ -32,11 +33,13 @@ function InboxContent() {
   const fetchInterests = async () => {
     setLoading(true);
     try {
-      const [conn, rec, s] = await Promise.all([
+      const [me, conn, rec, s] = await Promise.all([
+        apiClient<any>("/auth/me").catch(() => null),
         apiClient<InterestItem[]>("/interests/connected"),
         apiClient<InterestItem[]>("/interests/inbox"),
         apiClient<InterestItem[]>("/interests/sent"),
       ]);
+      if (me?.id) setCurrentUserId(me.id);
       setConnected(conn);
       setReceived(rec);
       setSent(s);
@@ -149,7 +152,9 @@ function InboxContent() {
           {activeList.map((item) => {
             const card =
               tab === "CONNECTED"
-                ? item.sender_profile || item.recipient_profile
+                ? (currentUserId && item.sender_id === currentUserId
+                    ? item.recipient_profile
+                    : item.sender_profile || item.recipient_profile)
                 : tab === "RECEIVED"
                 ? item.sender_profile
                 : item.recipient_profile;
