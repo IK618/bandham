@@ -3,12 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Sparkles, Shield, Phone, Zap, Edit3, Plus, QrCode } from "lucide-react";
+import dynamic from "next/dynamic";
 import { PlanItem, SubscriptionItem } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { PlanEditModal } from "@/components/pricing/PlanEditModal";
-import { PaymentQRModal } from "@/components/pricing/PaymentQRModal";
 import { apiClient } from "@/lib/api";
+
+// Vercel bundle-dynamic-imports: code-split admin and checkout modals
+const PlanEditModal = dynamic(
+  () => import("@/components/pricing/PlanEditModal").then((mod) => mod.PlanEditModal),
+  { ssr: false }
+);
+const PaymentQRModal = dynamic(
+  () => import("@/components/pricing/PaymentQRModal").then((mod) => mod.PaymentQRModal),
+  { ssr: false }
+);
 
 export default function PricingPage() {
   const router = useRouter();

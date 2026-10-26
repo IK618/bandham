@@ -19,13 +19,19 @@ import {
   AlertCircle,
   Flag,
 } from "lucide-react";
-import { ReportModal } from "@/components/safety/ReportModal";
+import dynamic from "next/dynamic";
 import { ProfileDetail, ContactStatusResponse } from "@/types";
 import { CompatibilityBadge } from "@/components/profile/CompatibilityBadge";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { apiClient } from "@/lib/api";
+
+// Vercel bundle-dynamic-imports: code-split incident reporting modal
+const ReportModal = dynamic(
+  () => import("@/components/safety/ReportModal").then((mod) => mod.ReportModal),
+  { ssr: false }
+);
 
 export default function ProfileDetailPage() {
   const params = useParams();

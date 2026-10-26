@@ -252,10 +252,20 @@ function SearchContent() {
           actionHref="/search"
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {profiles.map((p) => (
-            <ProfileCard key={p.id} profile={p} />
-          ))}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs text-stone-500 font-medium px-1">
+            <span>Showing <strong className="text-stone-900 font-semibold">{profiles.length}</strong> verified profiles</span>
+            {weightCategory && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-brand-700 border border-rose-200 text-[11px] font-semibold">
+                Weight: {weightCategory}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {profiles.map((p) => (
+              <ProfileCard key={p.id} profile={p} />
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -62,15 +62,22 @@ export default function DashboardPage() {
         return;
       }
 
-      // 3. User is ACTIVE: load profile and daily compatibility recommendations
-      const myProf = await apiClient<ProfileDetail>("/profiles/me");
-      setProfile(myProf);
+      // 3. User is ACTIVE: load profile and daily recommendations in parallel (Vercel async-parallel)
+      const [profResult, recsResult] = await Promise.allSettled([
+        apiClient<ProfileDetail>("/profiles/me"),
+        apiClient<ProfileCardType[]>("/matches/daily?limit=4"),
+      ]);
 
-      try {
-        const recs = await apiClient<ProfileCardType[]>("/matches/daily?limit=4");
-        setRecommendations(recs || []);
-      } catch (matchErr) {
-        console.warn("Could not load recommendations:", matchErr);
+      if (profResult.status === "fulfilled") {
+        setProfile(profResult.value);
+      } else {
+        throw profResult.reason;
+      }
+
+      if (recsResult.status === "fulfilled") {
+        setRecommendations(recsResult.value || []);
+      } else {
+        console.warn("Could not load recommendations:", recsResult.reason);
         setRecommendations([]);
       }
     } catch (err: any) {

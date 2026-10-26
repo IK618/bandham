@@ -21,11 +21,17 @@ import {
   Trash2,
   Image as ImageIcon,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { ProfileDetail } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { LiveSelfieModal } from "@/components/profile/LiveSelfieModal";
 import { apiClient } from "@/lib/api";
+
+// Vercel bundle-dynamic-imports: code-split webcam & canvas modal
+const LiveSelfieModal = dynamic(
+  () => import("@/components/profile/LiveSelfieModal").then((mod) => mod.LiveSelfieModal),
+  { ssr: false }
+);
 
 export default function EditProfilePage() {
   const router = useRouter();

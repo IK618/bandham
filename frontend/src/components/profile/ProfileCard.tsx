@@ -15,7 +15,8 @@ interface ProfileCardProps {
   onShortlistToggled?: () => void;
 }
 
-export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: ProfileCardProps) {
+// Vercel rerender-memo: memoize card component to prevent wasteful re-renders across search grids
+export const ProfileCard = React.memo(function ProfileCard({ profile, onInterestSent, onShortlistToggled }: ProfileCardProps) {
   const [interestSending, setInterestSending] = useState(false);
   const [interestSent, setInterestSent] = useState(false);
   const [shortlisted, setShortlisted] = useState(false);
@@ -55,7 +56,7 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-[border-color,box-shadow] overflow-hidden flex flex-col group">
+    <div className="bg-white rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-[border-color,box-shadow,transform] overflow-hidden flex flex-col group content-visibility-auto">
       {/* Photo Header & Privacy Shield */}
       <div className="relative h-64 bg-gradient-to-tr from-rose-100 via-rose-50 to-amber-50 flex items-center justify-center overflow-hidden">
         {/* Placeholder Portrait Silhouette / Watermarked Display */}
@@ -162,9 +163,24 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
             </div>
           )}
 
-          <p className="text-xs text-gray-600 mb-3 font-medium">
-            <span className="capitalize font-bold text-gray-800">{profile.gender ? profile.gender.toLowerCase() : ""}</span> • {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}′{Math.round((profile.height_cm % 30.48) / 2.54)}″{profile.weight_category ? ` • ${profile.weight_category}` : ""} • {profile.religion}{profile.community ? `, ${profile.community}` : ""}
-          </p>
+          {/* Physical Attributes & Community Meta */}
+          <div className="flex flex-wrap items-center gap-1.5 mb-3 text-xs text-stone-700 font-medium">
+            <span className="capitalize font-bold text-stone-900">{profile.gender ? profile.gender.toLowerCase() : ""}</span>
+            <span className="text-stone-300">•</span>
+            <span className="tabular-nums">{profile.age} Yrs</span>
+            <span className="text-stone-300">•</span>
+            <span className="tabular-nums">{Math.floor(profile.height_cm / 30.48)}′{Math.round((profile.height_cm % 30.48) / 2.54)}″</span>
+            {profile.weight_category && (
+              <>
+                <span className="text-stone-300">•</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-brand-800 border border-rose-200/80">
+                  {profile.weight_category}
+                </span>
+              </>
+            )}
+            <span className="text-stone-300">•</span>
+            <span className="text-stone-800">{profile.religion}{profile.community ? `, ${profile.community}` : ""}</span>
+          </div>
 
           <div className="space-y-1.5 text-xs text-gray-600 mb-4">
             <div className="flex items-center gap-2 min-w-0">
@@ -214,4 +230,4 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
       </div>
     </div>
   );
-}
+});
