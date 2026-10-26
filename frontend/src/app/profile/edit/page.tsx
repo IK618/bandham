@@ -38,6 +38,8 @@ export default function EditProfilePage() {
   const [lastName, setLastName] = useState("");
   const [gender, setGender] = useState("FEMALE");
   const [heightCm, setHeightCm] = useState(165);
+  const [weightCategory, setWeightCategory] = useState("50 - 60 kg");
+  const [weightKg, setWeightKg] = useState<number | "">("");
   const [maritalStatus, setMaritalStatus] = useState("NEVER_MARRIED");
   const [religion, setReligion] = useState("Hindu");
   const [motherTongue, setMotherTongue] = useState("Hindi");
@@ -110,6 +112,8 @@ export default function EditProfilePage() {
           setLastName(prof.last_name || "");
           setGender(prof.gender || "FEMALE");
           setHeightCm(prof.height_cm || 165);
+          setWeightCategory(prof.weight_category || "50 - 60 kg");
+          setWeightKg(prof.weight_kg ?? "");
           setMaritalStatus(prof.marital_status || "NEVER_MARRIED");
           setReligion(prof.religion || "Hindu");
           setMotherTongue(prof.mother_tongue || "Hindi");
@@ -402,6 +406,8 @@ export default function EditProfilePage() {
         last_name: lastName.trim() || "",
         gender: gender as any,
         height_cm: Number(heightCm) || 165,
+        weight_kg: weightKg !== "" ? Number(weightKg) : null,
+        weight_category: weightCategory || null,
         marital_status: maritalStatus,
         religion: religion || "Hindu",
         mother_tongue: motherTongue || "Hindi",
@@ -935,6 +941,60 @@ export default function EditProfilePage() {
                 onChange={(e) => {
                   setHeightCm(Number(e.target.value));
                   setIsDirty(true);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 tabular-nums"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="profileWeightCategory" className="block text-xs font-semibold text-gray-700 mb-1">
+                Weight Category *
+              </label>
+              <select
+                id="profileWeightCategory"
+                name="weightCategory"
+                value={weightCategory}
+                onChange={(e) => {
+                  setWeightCategory(e.target.value);
+                  setIsDirty(true);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 font-medium bg-white text-gray-900"
+              >
+                <option value="Under 50 kg">Under 50 kg (Petite / Lean)</option>
+                <option value="50 - 60 kg">50 - 60 kg (Slim / Fit)</option>
+                <option value="60 - 70 kg">60 - 70 kg (Average / Athletic)</option>
+                <option value="70 - 80 kg">70 - 80 kg (Healthy / Built)</option>
+                <option value="80 - 90 kg">80 - 90 kg (Sturdy / Well-built)</option>
+                <option value="90 - 100 kg">90 - 100 kg (Heavy / Broad)</option>
+                <option value="100+ kg">100+ kg (Plus Size)</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="profileWeightKg" className="block text-xs font-semibold text-gray-700 mb-1">
+                Weight in kg <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                id="profileWeightKg"
+                name="weightKg"
+                type="number"
+                min={30}
+                max={200}
+                placeholder="e.g. 58"
+                value={weightKg}
+                onChange={(e) => {
+                  const val = e.target.value === "" ? "" : Number(e.target.value);
+                  setWeightKg(val);
+                  setIsDirty(true);
+                  if (typeof val === "number" && val > 0) {
+                    if (val < 50) setWeightCategory("Under 50 kg");
+                    else if (val < 60) setWeightCategory("50 - 60 kg");
+                    else if (val < 70) setWeightCategory("60 - 70 kg");
+                    else if (val < 80) setWeightCategory("70 - 80 kg");
+                    else if (val < 90) setWeightCategory("80 - 90 kg");
+                    else if (val < 100) setWeightCategory("90 - 100 kg");
+                    else setWeightCategory("100+ kg");
+                  }
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 tabular-nums"
               />

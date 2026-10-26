@@ -244,6 +244,8 @@ async def seed_profiles(session: AsyncSession, gold_plan: Plan) -> None:
         gender=GenderEnum.FEMALE,
         date_of_birth=date(1996, 5, 14),
         height_cm=165,
+        weight_kg=56,
+        weight_category="50 - 60 kg",
         marital_status=MaritalStatusEnum.NEVER_MARRIED,
         religion="Hindu",
         mother_tongue="Hindi",
@@ -347,6 +349,20 @@ async def seed_profiles(session: AsyncSession, gold_plan: Plan) -> None:
         await session.flush()
         users.append(user)
 
+        weight = random.randint(48, 68) if gender == GenderEnum.FEMALE else random.randint(62, 88)
+        if weight < 50:
+            weight_cat = "Under 50 kg"
+        elif weight < 60:
+            weight_cat = "50 - 60 kg"
+        elif weight < 70:
+            weight_cat = "60 - 70 kg"
+        elif weight < 80:
+            weight_cat = "70 - 80 kg"
+        elif weight < 90:
+            weight_cat = "80 - 90 kg"
+        else:
+            weight_cat = "90 - 100 kg"
+
         profile = Profile(
             user_id=user.id,
             profile_id_display=f"BDN-{10000 + i}",
@@ -356,6 +372,8 @@ async def seed_profiles(session: AsyncSession, gold_plan: Plan) -> None:
             gender=gender,
             date_of_birth=dob,
             height_cm=height,
+            weight_kg=weight,
+            weight_category=weight_cat,
             marital_status=random.choices(
                 [MaritalStatusEnum.NEVER_MARRIED, MaritalStatusEnum.DIVORCED, MaritalStatusEnum.WIDOWED],
                 weights=[85, 12, 3]

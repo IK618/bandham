@@ -112,6 +112,8 @@ class Profile(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     height_cm: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    weight_kg: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    weight_category: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     marital_status: Mapped[MaritalStatusEnum] = mapped_column(
         Enum(MaritalStatusEnum, name="marital_status_enum"),
         default=MaritalStatusEnum.NEVER_MARRIED,

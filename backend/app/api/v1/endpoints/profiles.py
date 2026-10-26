@@ -69,6 +69,8 @@ async def get_my_profile(
                 date_of_birth=date(1985, 1, 1),
                 age=40,
                 height_cm=175,
+                weight_kg=70,
+                weight_category="70 - 80 kg",
                 marital_status=MaritalStatusEnum.NEVER_MARRIED,
                 religion="Universal",
                 mother_tongue="English",
@@ -122,6 +124,8 @@ async def get_my_profile(
         date_of_birth=profile.date_of_birth,
         age=age,
         height_cm=profile.height_cm,
+        weight_kg=profile.weight_kg,
+        weight_category=profile.weight_category,
         marital_status=profile.marital_status,
         religion=profile.religion,
         mother_tongue=profile.mother_tongue,
@@ -180,6 +184,8 @@ async def create_profile(
         gender=payload.gender,
         date_of_birth=payload.date_of_birth,
         height_cm=payload.height_cm,
+        weight_kg=payload.weight_kg,
+        weight_category=payload.weight_category,
         marital_status=payload.marital_status,
         religion=payload.religion,
         mother_tongue=payload.mother_tongue,
@@ -264,6 +270,24 @@ async def update_my_profile(
                 setattr(profile, field, None)
         elif val is not None:
             setattr(profile, field, val)
+
+    # Auto-derive weight_category if weight_kg is provided without explicit category
+    if profile.weight_kg and not profile.weight_category:
+        w = profile.weight_kg
+        if w < 50:
+            profile.weight_category = "Under 50 kg"
+        elif w < 60:
+            profile.weight_category = "50 - 60 kg"
+        elif w < 70:
+            profile.weight_category = "60 - 70 kg"
+        elif w < 80:
+            profile.weight_category = "70 - 80 kg"
+        elif w < 90:
+            profile.weight_category = "80 - 90 kg"
+        elif w < 100:
+            profile.weight_category = "90 - 100 kg"
+        else:
+            profile.weight_category = "100+ kg"
 
     # Calculate profile completeness score (caste, gotra, manglik are optional and not penalized)
     fields_to_check = [
@@ -411,6 +435,8 @@ async def get_profile_by_id(
         date_of_birth=profile.date_of_birth,
         age=age,
         height_cm=profile.height_cm,
+        weight_kg=profile.weight_kg,
+        weight_category=profile.weight_category,
         marital_status=profile.marital_status,
         religion=profile.religion,
         mother_tongue=profile.mother_tongue,
@@ -457,6 +483,7 @@ async def search_profiles(
     mother_tongue: Optional[str] = None,
     city: Optional[str] = None,
     diet: Optional[DietEnum] = None,
+    weight_category: Optional[str] = None,
     keyword: Optional[str] = None,
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=50),
@@ -481,6 +508,8 @@ async def search_profiles(
         conditions.append(Profile.residence_city.ilike(f"%{city}%"))
     if diet:
         conditions.append(Profile.diet == diet)
+    if weight_category:
+        conditions.append(Profile.weight_category == weight_category)
     if keyword:
         conditions.append(
             or_(
@@ -533,6 +562,8 @@ async def search_profiles(
                 gender=p.gender,
                 age=calculate_age(p.date_of_birth),
                 height_cm=p.height_cm,
+                weight_kg=p.weight_kg,
+                weight_category=p.weight_category,
                 marital_status=p.marital_status,
                 religion=p.religion,
                 community=p.community,

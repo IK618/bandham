@@ -29,6 +29,8 @@ class ProfileBase(BaseModel):
     gender: GenderEnum
     date_of_birth: date
     height_cm: int = Field(..., ge=130, le=220)
+    weight_kg: Optional[int] = Field(default=None, ge=30, le=200)
+    weight_category: Optional[str] = Field(default=None, max_length=64)
     marital_status: MaritalStatusEnum = MaritalStatusEnum.NEVER_MARRIED
 
     religion: str = Field(default="Hindu", max_length=64)
@@ -115,6 +117,8 @@ class ProfileUpdate(BaseModel):
     gender: Optional[GenderEnum] = None
     date_of_birth: Optional[date] = None
     height_cm: Optional[int] = Field(None, ge=130, le=220)
+    weight_kg: Optional[int] = Field(None, ge=30, le=200)
+    weight_category: Optional[str] = None
     marital_status: Optional[MaritalStatusEnum] = None
     religion: Optional[str] = None
     mother_tongue: Optional[str] = None
@@ -151,6 +155,8 @@ class ProfilePublicCard(BaseModel):
     gender: GenderEnum
     age: int
     height_cm: int
+    weight_kg: Optional[int] = None
+    weight_category: Optional[str] = None
     marital_status: MaritalStatusEnum
     religion: str
     community: Optional[str] = None

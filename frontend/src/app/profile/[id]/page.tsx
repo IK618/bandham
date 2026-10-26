@@ -702,6 +702,13 @@ export default function ProfileDetailPage() {
                 <span className="font-semibold text-gray-800 text-sm">{profile.age || "--"} Yrs, {profile.height_cm || "--"} cm</span>
               </div>
               <div>
+                <span className="text-gray-400 block">Weight Category</span>
+                <span className="font-semibold text-gray-800 text-sm">
+                  {profile.weight_category || (profile.weight_kg ? `${profile.weight_kg} kg` : "Not Specified")}
+                  {profile.weight_category && profile.weight_kg ? ` (${profile.weight_kg} kg)` : ""}
+                </span>
+              </div>
+              <div>
                 <span className="text-gray-400 block">Marital Status</span>
                 <span className="font-semibold text-gray-800 text-sm">{maritalDisplay}</span>
               </div>

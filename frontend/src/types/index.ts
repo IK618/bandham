@@ -15,6 +15,8 @@ export interface ProfileCard {
   gender: Gender;
   age: number;
   height_cm: number;
+  weight_kg?: number | null;
+  weight_category?: string | null;
   marital_status: MaritalStatus;
   religion: string;
   community?: string;

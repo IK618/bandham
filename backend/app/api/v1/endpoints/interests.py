@@ -34,6 +34,8 @@ def profile_to_card(p: Profile) -> ProfilePublicCard:
         gender=p.gender,
         age=calculate_age(p.date_of_birth),
         height_cm=p.height_cm,
+        weight_kg=p.weight_kg,
+        weight_category=p.weight_category,
         marital_status=p.marital_status,
         religion=p.religion,
         community=p.community,

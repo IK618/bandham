@@ -22,6 +22,7 @@ function SearchContent() {
   const [religion, setReligion] = useState("");
   const [city, setCity] = useState("");
   const [diet, setDiet] = useState("");
+  const [weightCategory, setWeightCategory] = useState("");
   const [keyword, setKeyword] = useState("");
 
   const fetchResults = async (customFilters?: {
@@ -29,6 +30,7 @@ function SearchContent() {
     religion?: string;
     city?: string;
     diet?: string;
+    weightCategory?: string;
     keyword?: string;
   }) => {
     setLoading(true);
@@ -37,6 +39,7 @@ function SearchContent() {
       const r = customFilters?.religion !== undefined ? customFilters.religion : religion;
       const c = customFilters?.city !== undefined ? customFilters.city : city;
       const d = customFilters?.diet !== undefined ? customFilters.diet : diet;
+      const w = customFilters?.weightCategory !== undefined ? customFilters.weightCategory : weightCategory;
       const k = customFilters?.keyword !== undefined ? customFilters.keyword : keyword;
 
       const data = await apiClient<ProfileCardType[]>("/profiles", {
@@ -45,6 +48,7 @@ function SearchContent() {
           religion: r || undefined,
           city: c || undefined,
           diet: d || undefined,
+          weight_category: w || undefined,
           keyword: k || undefined,
           limit: 24,
         },
@@ -63,12 +67,14 @@ function SearchContent() {
     const urlReligion = searchParams.get("religion") || "";
     const urlCity = searchParams.get("city") || "";
     const urlDiet = searchParams.get("diet") || "";
+    const urlWeight = searchParams.get("weight_category") || "";
     const urlKeyword = searchParams.get("keyword") || searchParams.get("mother_tongue") || "";
 
     setGender(urlGender);
     setReligion(urlReligion);
     setCity(urlCity);
     setDiet(urlDiet);
+    setWeightCategory(urlWeight);
     setKeyword(urlKeyword);
 
     fetchResults({
@@ -76,6 +82,7 @@ function SearchContent() {
       religion: urlReligion,
       city: urlCity,
       diet: urlDiet,
+      weightCategory: urlWeight,
       keyword: urlKeyword,
     });
   }, [searchParams]);
@@ -87,6 +94,7 @@ function SearchContent() {
     if (religion) query.set("religion", religion);
     if (city) query.set("city", city);
     if (diet) query.set("diet", diet);
+    if (weightCategory) query.set("weight_category", weightCategory);
     if (keyword) query.set("keyword", keyword);
 
     const queryString = query.toString();
@@ -99,6 +107,7 @@ function SearchContent() {
     setReligion("");
     setCity("");
     setDiet("");
+    setWeightCategory("");
     setKeyword("");
     router.replace("/search");
     fetchResults({
@@ -106,6 +115,7 @@ function SearchContent() {
       religion: "",
       city: "",
       diet: "",
+      weightCategory: "",
       keyword: "",
     });
   };
@@ -123,7 +133,7 @@ function SearchContent() {
 
       {/* Filter Control Form */}
       <form onSubmit={handleApplyFilters} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 text-xs">
           <div>
             <label htmlFor="genderFilter" className="block font-semibold text-gray-700 mb-1">Gender</label>
             <select
@@ -184,6 +194,26 @@ function SearchContent() {
               <option value="NON_VEGETARIAN">Non-Vegetarian</option>
               <option value="EGGETARIAN">Eggetarian</option>
               <option value="JAIN">Jain Vegetarian</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="weightCategoryFilter" className="block font-semibold text-gray-700 mb-1">Weight Category</label>
+            <select
+              id="weightCategoryFilter"
+              name="weightCategory"
+              value={weightCategory}
+              onChange={(e) => setWeightCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 bg-white text-gray-900"
+            >
+              <option value="">All Weights</option>
+              <option value="Under 50 kg">Under 50 kg</option>
+              <option value="50 - 60 kg">50 - 60 kg</option>
+              <option value="60 - 70 kg">60 - 70 kg</option>
+              <option value="70 - 80 kg">70 - 80 kg</option>
+              <option value="80 - 90 kg">80 - 90 kg</option>
+              <option value="90 - 100 kg">90 - 100 kg</option>
+              <option value="100+ kg">100+ kg</option>
             </select>
           </div>
 

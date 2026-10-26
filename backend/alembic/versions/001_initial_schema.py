@@ -52,6 +52,8 @@ def upgrade() -> None:
         sa.Column("gender", sa.Enum("MALE", "FEMALE", "OTHER", name="gender_enum"), nullable=False, index=True),
         sa.Column("date_of_birth", sa.Date(), nullable=False, index=True),
         sa.Column("height_cm", sa.Integer(), nullable=False, index=True),
+        sa.Column("weight_kg", sa.Integer(), nullable=True),
+        sa.Column("weight_category", sa.String(64), nullable=True, index=True),
         sa.Column("marital_status", sa.Enum("NEVER_MARRIED", "DIVORCED", "WIDOWED", "AWAITING_DIVORCE", name="marital_status_enum"), nullable=False, index=True),
         sa.Column("religion", sa.String(64), nullable=False, index=True),
         sa.Column("mother_tongue", sa.String(64), nullable=False, index=True),
