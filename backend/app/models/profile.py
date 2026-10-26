@@ -7,9 +7,9 @@ background so prospective life partners and families can evaluate mutual life co
 import enum
 import uuid
 from datetime import date
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from sqlalchemy import Boolean, Date, Enum, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from backend.app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
@@ -184,6 +184,14 @@ class Profile(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     bio_narrative: Mapped[str] = mapped_column(Text, nullable=False)
     profile_completeness_pct: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
     is_searchable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
+
+    # 4-Pillar Trust Shield (+25% per badge)
+    id_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    selfie_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    employment_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    family_reference_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    trust_shield_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    family_references: Mapped[Optional[Any]] = mapped_column(JSONB, default=list, nullable=True)
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="profile")

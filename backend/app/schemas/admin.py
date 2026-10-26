@@ -7,10 +7,12 @@ from backend.app.schemas.safety import (
     AdminUserItem,
     UpdateUserRoleRequest,
     UpdateUserStatusRequest,
+    UpdateTrustBadgeRequest,
 )
 
 __all__ = [
     "AdminUserItem",
     "UpdateUserRoleRequest",
     "UpdateUserStatusRequest",
+    "UpdateTrustBadgeRequest",
 ]

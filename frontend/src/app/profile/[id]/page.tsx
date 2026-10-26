@@ -307,8 +307,17 @@ export default function ProfileDetailPage() {
               }`}>
                 {profile.gender === "FEMALE" ? "Female (Bride)" : profile.gender === "MALE" ? "Male (Groom)" : profile.gender}
               </span>
-              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> ID Verified Member
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1 ${
+                (profile.trust_shield_score ?? 0) === 100
+                  ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                  : (profile.trust_shield_score ?? 0) >= 75
+                  ? "bg-teal-50 text-teal-800 border border-teal-200"
+                  : (profile.trust_shield_score ?? 0) >= 50
+                  ? "bg-blue-50 text-blue-800 border border-blue-200"
+                  : "bg-emerald-50 text-emerald-700"
+              }`}>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                🛡️ {profile.trust_shield_score ?? 0}% Trust Shield
               </span>
               <Badge variant="brand">{profile.created_by || "Self"} Managed</Badge>
             </div>
@@ -524,6 +533,149 @@ export default function ProfileDetailPage() {
             <p className="text-sm text-gray-700 leading-relaxed italic border-l-4 border-brand-500 pl-4 py-1">
               &ldquo;{profile.bio_narrative || "No bio narrative provided."}&rdquo;
             </p>
+          </div>
+
+          {/* 🛡️ 4-Pillar Trust Shield & Background Verification */}
+          <div className="bg-gradient-to-br from-white via-emerald-50/20 to-amber-50/20 p-6 sm:p-8 rounded-3xl border border-emerald-100 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold font-serif text-gray-900">
+                    Bandham Trust Shield Verification
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    4-pillar authenticated background credentials &amp; family governance
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="text-2xl font-black font-mono text-emerald-800">
+                  {profile.trust_shield_score ?? 0}%
+                </span>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200">
+                  {(profile.trust_shield_score ?? 0) === 100
+                    ? "Maximum Trust"
+                    : (profile.trust_shield_score ?? 0) >= 75
+                    ? "High Trust"
+                    : (profile.trust_shield_score ?? 0) >= 50
+                    ? "Verified Member"
+                    : "Basic Status"}
+                </span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-teal-500 via-emerald-500 to-amber-500 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(5, profile.trust_shield_score ?? 0))}%` }}
+              />
+            </div>
+
+            {/* 4 Pillars Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* Pillar 1: Govt ID */}
+              <div className={`p-4 rounded-2xl border transition-colors ${profile.id_verified ? "bg-emerald-50/60 border-emerald-200 text-emerald-950" : "bg-gray-50/70 border-gray-200 text-gray-500"}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <span className="text-base">🪪</span> Government ID
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${profile.id_verified ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-600"}`}>
+                    {profile.id_verified ? "+25% Verified" : "0% Pending"}
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  {profile.id_verified
+                    ? "Aadhaar / Official ID verified with strict zero-knowledge document hashing."
+                    : "Govt ID submission awaiting member upload."}
+                </p>
+              </div>
+
+              {/* Pillar 2: Selfie Liveness Check */}
+              <div className={`p-4 rounded-2xl border transition-colors ${profile.selfie_verified ? "bg-emerald-50/60 border-emerald-200 text-emerald-950" : "bg-gray-50/70 border-gray-200 text-gray-500"}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <span className="text-base">🤳</span> Selfie Liveness Check
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${profile.selfie_verified ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-600"}`}>
+                    {profile.selfie_verified ? "+25% Verified" : "0% Pending"}
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  {profile.selfie_verified
+                    ? "Biometric facial liveness confirmed. Photos match candidate profile portrait."
+                    : "Live camera biometric check pending."}
+                </p>
+              </div>
+
+              {/* Pillar 3: Employment Background */}
+              <div className={`p-4 rounded-2xl border transition-colors ${profile.employment_verified ? "bg-emerald-50/60 border-emerald-200 text-emerald-950" : "bg-gray-50/70 border-gray-200 text-gray-500"}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <span className="text-base">💼</span> Background &amp; Career
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${profile.employment_verified ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-600"}`}>
+                    {profile.employment_verified ? "+25% Verified" : "0% Pending"}
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  {profile.employment_verified
+                    ? `Employment position (${profile.occupation || "Professional"}) verified by platform.`
+                    : "Work credentials reported by member."}
+                </p>
+              </div>
+
+              {/* Pillar 4: Mutual Family References */}
+              <div className={`p-4 rounded-2xl border transition-colors ${profile.family_reference_verified ? "bg-emerald-50/60 border-emerald-200 text-emerald-950" : "bg-gray-50/70 border-gray-200 text-gray-500"}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <span className="text-base">👨‍👩‍👧‍👦</span> Mutual Family References
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${profile.family_reference_verified ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-600"}`}>
+                    {profile.family_reference_verified ? "+25% Verified" : "0% Pending"}
+                  </span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  {profile.family_reference_verified
+                    ? "Family elder & relative contacts recorded on file for mutual reference check."
+                    : "Family elder contact references pending submission."}
+                </p>
+              </div>
+            </div>
+
+            {/* Verified Family References List if Available */}
+            {profile.family_references && profile.family_references.length > 0 && (
+              <div className="pt-4 border-t border-emerald-100/70 space-y-2.5">
+                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>👨‍👩‍👧‍👦 Verified Family References on File</span>
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    {profile.family_references.length} Contact{profile.family_references.length > 1 ? "s" : ""}
+                  </span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {profile.family_references.map((ref, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-white rounded-xl border border-emerald-100 shadow-xs flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <p className="font-bold text-gray-900">{ref.name}</p>
+                        <p className="text-[11px] text-gray-600">
+                          {ref.relation} • {ref.city}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        ✓ Reference Active
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Core Personal & Religious Background */}

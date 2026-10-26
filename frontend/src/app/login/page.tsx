@@ -61,11 +61,35 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {error && (
+        {error && error.includes("under review") ? (
+          <div
+            role="alert"
+            aria-live="polite"
+            className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl text-xs text-amber-900 space-y-2"
+          >
+            <div className="flex items-center gap-2 font-bold text-amber-950">
+              <Shield className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
+              <span>Membership Proposal Under Review</span>
+            </div>
+            <p className="leading-relaxed">
+              {error}
+            </p>
+            <div className="pt-2 border-t border-amber-200/60 text-[11px] text-amber-800 flex items-center justify-between">
+              <span>Admin reviewer demo:</span>
+              <button
+                type="button"
+                onClick={() => fillCredentials("admin@bandham.local", "Admin@12345")}
+                className="font-bold underline hover:text-amber-950"
+              >
+                Sign In as Admin
+              </button>
+            </div>
+          </div>
+        ) : error ? (
           <div role="alert" aria-live="polite" className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
             {error}
           </div>
-        )}
+        ) : null}
 
         <form onSubmit={handleSubmit} className="space-y-5 text-sm">
           <div>

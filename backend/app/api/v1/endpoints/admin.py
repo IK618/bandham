@@ -18,7 +18,12 @@ from backend.app.models.preference import PartnerPreference
 from backend.app.models.safety import Notification, NotificationTypeEnum, Report, ReportStatusEnum
 from backend.app.models.plan import Subscription, SubscriptionStatusEnum
 from backend.app.schemas.safety import ReportResponse
-from backend.app.schemas.admin import AdminUserItem, UpdateUserRoleRequest, UpdateUserStatusRequest
+from backend.app.schemas.admin import (
+    AdminUserItem,
+    UpdateUserRoleRequest,
+    UpdateUserStatusRequest,
+    UpdateTrustBadgeRequest,
+)
 
 router = APIRouter(prefix="/admin", tags=["Administration & Moderation"])
 
@@ -97,7 +102,13 @@ async def list_admin_users(
             last_name=profile.last_name if profile else None,
             profile_id_display=profile.profile_id_display if profile else None,
             gender=profile.gender.value if profile and profile.gender else None,
-            city=profile.residence_city if profile else None
+            city=profile.residence_city if profile else None,
+            id_verified=bool(profile.id_verified) if profile else False,
+            selfie_verified=bool(profile.selfie_verified) if profile else False,
+            employment_verified=bool(profile.employment_verified) if profile else False,
+            family_reference_verified=bool(profile.family_reference_verified) if profile else False,
+            trust_shield_score=profile.trust_shield_score if profile and profile.trust_shield_score else 0,
+            family_references=profile.family_references if profile else []
         ))
     return results
 
@@ -196,6 +207,64 @@ async def update_user_status(
     }
 
 
+@router.patch("/users/{user_id}/trust-badge")
+async def update_user_trust_badges(
+    user_id: str,
+    payload: UpdateTrustBadgeRequest,
+    admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
+    db: AsyncSession = Depends(get_db)
+):
+    """Manually grants or revokes Trust Shield badges (Govt ID, Selfie, Employment, Family References)."""
+    try:
+        u_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user UUID format.")
+
+    prof = (await db.execute(select(Profile).where(Profile.user_id == u_uuid))).scalars().first()
+    if not prof:
+        raise HTTPException(status_code=404, detail="Candidate profile not found.")
+
+    if payload.id_verified is not None:
+        prof.id_verified = payload.id_verified
+    if payload.selfie_verified is not None:
+        prof.selfie_verified = payload.selfie_verified
+    if payload.employment_verified is not None:
+        prof.employment_verified = payload.employment_verified
+    if payload.family_reference_verified is not None:
+        prof.family_reference_verified = payload.family_reference_verified
+
+    # Recalculate Trust Shield Score (25% per verified badge, max 100%)
+    score = (
+        (1 if prof.id_verified else 0) +
+        (1 if prof.selfie_verified else 0) +
+        (1 if prof.employment_verified else 0) +
+        (1 if prof.family_reference_verified else 0)
+    ) * 25
+    prof.trust_shield_score = score
+
+    # Send notification to user about their updated Trust Shield score
+    db.add(Notification(
+        user_id=u_uuid,
+        title=f"🛡️ Trust Shield Updated: {score}% Verified",
+        message=f"A platform governance administrator ({admin_user.role.value}) has reviewed your credentials. Your Trust Shield score is now {score}%.",
+        notification_type=NotificationTypeEnum.SYSTEM,
+        reference_link="/profile/edit"
+    ))
+
+    await db.commit()
+    await db.refresh(prof)
+
+    return {
+        "message": f"Trust badges updated. Trust Shield Score: {score}%.",
+        "user_id": str(u_uuid),
+        "id_verified": prof.id_verified,
+        "selfie_verified": prof.selfie_verified,
+        "employment_verified": prof.employment_verified,
+        "family_reference_verified": prof.family_reference_verified,
+        "trust_shield_score": prof.trust_shield_score
+    }
+
+
 @router.get("/proposals", response_model=List[AdminUserItem])
 async def list_pending_proposals(
     admin_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MODERATOR)),
@@ -222,7 +291,13 @@ async def list_pending_proposals(
             last_name=profile.last_name if profile else None,
             profile_id_display=profile.profile_id_display if profile else None,
             gender=profile.gender.value if profile and profile.gender else None,
-            city=profile.residence_city if profile else None
+            city=profile.residence_city if profile else None,
+            id_verified=bool(profile.id_verified) if profile else False,
+            selfie_verified=bool(profile.selfie_verified) if profile else False,
+            employment_verified=bool(profile.employment_verified) if profile else False,
+            family_reference_verified=bool(profile.family_reference_verified) if profile else False,
+            trust_shield_score=profile.trust_shield_score if profile and profile.trust_shield_score else 0,
+            family_references=profile.family_references if profile else []
         ))
     return results
 

@@ -5,7 +5,7 @@ and control what fields can be publicly viewed versus redacted for strangers.
 """
 
 from datetime import date
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 import re
 from backend.app.models.profile import (
@@ -166,6 +166,11 @@ class ProfilePublicCard(BaseModel):
     thumbnail_url: Optional[str] = None
     is_photo_blurred: bool = False
     compatibility_score: Optional[float] = None
+    id_verified: bool = False
+    selfie_verified: bool = False
+    employment_verified: bool = False
+    family_reference_verified: bool = False
+    trust_shield_score: int = 0
 
 
 class ProfileDetailResponse(ProfileBase):
@@ -181,6 +186,12 @@ class ProfileDetailResponse(ProfileBase):
     is_photo_blurred: bool = False
     has_contact_revealed: bool = False
     compatibility_score: Optional[float] = None
+    id_verified: bool = False
+    selfie_verified: bool = False
+    employment_verified: bool = False
+    family_reference_verified: bool = False
+    trust_shield_score: int = 0
+    family_references: Optional[List[Dict[str, Any]]] = None
 
 
 # Partner Preference schemas consolidated into profile domain

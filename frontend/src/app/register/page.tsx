@@ -9,7 +9,7 @@ import { apiClient } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"FORM" | "OTP">("FORM");
+  const [step, setStep] = useState<"FORM" | "OTP" | "AWAITING_APPROVAL">("FORM");
   const [profileFor, setProfileFor] = useState("SELF");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -63,14 +63,18 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await apiClient("/auth/verify-otp", {
+      const res = await apiClient<any>("/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify({
           phone_number: phoneNumber,
           otp_code: otpCode.trim(),
         }),
       });
-      window.location.href = "/dashboard";
+      if (res?.status === "PENDING_APPROVAL" || !res?.access_token) {
+        setStep("AWAITING_APPROVAL");
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch (err: any) {
       setError(err.message || "Invalid OTP code. Please enter 123456.");
     } finally {
@@ -86,12 +90,18 @@ export default function RegisterPage() {
             <Heart className="w-6 h-6 fill-white" />
           </div>
           <h2 className="text-2xl font-bold font-serif text-gray-900 tracking-tight">
-            {step === "FORM" ? "Begin Your Matrimonial Journey" : "Verify Mobile Phone Number"}
+            {step === "FORM"
+              ? "Begin Your Matrimonial Journey"
+              : step === "OTP"
+              ? "Verify Mobile Phone Number"
+              : "Proposal Awaiting Approval"}
           </h2>
           <p className="text-xs text-gray-500 mt-1">
             {step === "FORM"
               ? "Join 100% verified marriage-minded members and authentic families"
-              : `Enter the 6-digit OTP code sent to ${phoneNumber}`}
+              : step === "OTP"
+              ? `Enter the 6-digit OTP code sent to ${phoneNumber}`
+              : "Your registration has been received and queued for Trust & Governance review"}
           </p>
         </div>
 
@@ -222,7 +232,7 @@ export default function RegisterPage() {
               Continue to Phone Verification <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </form>
-        ) : (
+        ) : step === "OTP" ? (
           <form onSubmit={handleOtpSubmit} className="space-y-6 text-sm">
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3">
               <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" aria-hidden="true" />
@@ -249,9 +259,45 @@ export default function RegisterPage() {
             </div>
 
             <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={loading}>
-              Verify &amp; Enter Dashboard <CheckCircle2 className="w-4 h-4 ml-2" aria-hidden="true" />
+              Verify Phone Number <CheckCircle2 className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </form>
+        ) : (
+          <div className="space-y-6 text-sm text-center">
+            <div className="p-6 bg-amber-50/90 border border-amber-200 rounded-3xl space-y-3 shadow-xs">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-xs">
+                <ShieldCheck className="w-8 h-8 text-amber-600" aria-hidden="true" />
+              </div>
+              <h3 className="text-base font-bold text-amber-950 font-serif">
+                Membership Application Submitted!
+              </h3>
+              <p className="text-xs text-amber-900 leading-relaxed">
+                Your phone number <strong>{phoneNumber}</strong> is verified. To protect families and maintain community trust, new member accounts require review and activation by our Trust &amp; Governance committee.
+              </p>
+              <div className="p-3 bg-white/80 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 text-left space-y-1">
+                <p className="font-bold flex items-center gap-1.5 text-amber-950">
+                  <span>🔒 Account Gated Until Administrator Approval</span>
+                </p>
+                <p className="text-amber-800">
+                  You will be able to log in to your dashboard once an Administrator approves your proposal.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Link href="/login" className="block">
+                <Button variant="primary" size="lg" className="w-full">
+                  Check Approval Status at Sign In <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+                </Button>
+              </Link>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-left text-xs text-slate-700 flex items-center justify-between">
+                <span>Demo Admin Reviewer?</span>
+                <Link href="/admin" className="text-brand-600 font-bold underline hover:text-brand-700">
+                  Open Admin Command Center
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="pt-4 border-t border-gray-100 text-center text-xs text-gray-500">

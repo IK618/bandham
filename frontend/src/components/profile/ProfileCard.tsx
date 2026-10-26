@@ -111,11 +111,47 @@ export function ProfileCard({ profile, onInterestSent, onShortlistToggled }: Pro
                 {profile.gender === "FEMALE" ? "Bride" : profile.gender === "MALE" ? "Groom" : profile.gender}
               </span>
             </div>
-            <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
-              Verified
-            </span>
+            {profile.trust_shield_score !== undefined && profile.trust_shield_score > 0 ? (
+              <span
+                className={`text-[11px] font-bold flex items-center gap-1 px-2.5 py-0.5 rounded-full shadow-xs ${
+                  profile.trust_shield_score === 100
+                    ? "bg-emerald-100/80 text-emerald-900 border border-emerald-300"
+                    : profile.trust_shield_score >= 75
+                    ? "bg-teal-50 text-teal-800 border border-teal-200"
+                    : profile.trust_shield_score >= 50
+                    ? "bg-blue-50 text-blue-800 border border-blue-200"
+                    : "bg-slate-100 text-slate-700 border border-slate-200"
+                }`}
+                title={`Trust Shield: ${profile.trust_shield_score}% Verified`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" aria-hidden="true" />
+                <span>{profile.trust_shield_score}% Shield</span>
+              </span>
+            ) : (
+              <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                Verified
+              </span>
+            )}
           </div>
+
+          {/* 4-Pillar Trust Micro-Badges */}
+          {profile.trust_shield_score !== undefined && profile.trust_shield_score > 0 && (
+            <div className="flex items-center gap-1.5 mb-2.5 text-[10px] font-medium text-gray-500">
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded ${profile.id_verified ? "bg-emerald-50 text-emerald-800 font-semibold" : "bg-gray-100 text-gray-400 line-through"}`}>
+                🪪 ID
+              </span>
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded ${profile.selfie_verified ? "bg-emerald-50 text-emerald-800 font-semibold" : "bg-gray-100 text-gray-400 line-through"}`}>
+                🤳 Selfie
+              </span>
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded ${profile.employment_verified ? "bg-emerald-50 text-emerald-800 font-semibold" : "bg-gray-100 text-gray-400 line-through"}`}>
+                💼 Job
+              </span>
+              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded ${profile.family_reference_verified ? "bg-emerald-50 text-emerald-800 font-semibold" : "bg-gray-100 text-gray-400 line-through"}`}>
+                👨‍👩‍👧 Family
+              </span>
+            </div>
+          )}
 
           <p className="text-xs text-gray-600 mb-3 font-medium">
             <span className="capitalize font-bold text-gray-800">{profile.gender ? profile.gender.toLowerCase() : ""}</span> • {profile.age} Yrs, {Math.floor(profile.height_cm / 30.48)}′{Math.round((profile.height_cm % 30.48) / 2.54)}″ • {profile.religion}{profile.community ? `, ${profile.community}` : ""}

@@ -139,10 +139,24 @@ async def verify_otp(
     user.last_login_at = datetime.now(timezone.utc)
     await db.commit()
 
+    prof = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalars().first()
+
+    # If user is awaiting administrator approval, do not issue session cookies
+    if user.status in [UserStatus.PENDING_APPROVAL, UserStatus.PENDING_VERIFICATION]:
+        return TokenResponse(
+            access_token="",
+            refresh_token="",
+            user_id=str(user.id),
+            role=user.role,
+            status=user.status,
+            email=user.email,
+            profile_id_display=prof.profile_id_display if prof else None
+        )
+
     access_token = create_access_token(subject=str(user.id), role=user.role.value)
     refresh_token = create_refresh_token(subject=str(user.id))
 
-    # Set HttpOnly cookies
+    # Set HttpOnly cookies for active users
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -159,8 +173,6 @@ async def verify_otp(
         secure=settings.IS_COOKIE_SECURE,
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
     )
-
-    prof = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalars().first()
 
     return TokenResponse(
         access_token=access_token,
@@ -185,6 +197,12 @@ async def login(
     
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid login credentials.")
+
+    if user.status in [UserStatus.PENDING_APPROVAL, UserStatus.PENDING_VERIFICATION]:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account registration is under review by our Trust & Governance committee. Login access will be granted once an Administrator approves your proposal."
+        )
 
     if user.status in [UserStatus.SUSPENDED, UserStatus.BANNED]:
         raise HTTPException(status_code=403, detail=f"Account is {user.status.value}. Contact support.")

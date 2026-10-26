@@ -30,6 +30,19 @@ export interface ProfileCard {
   thumbnail_url?: string;
   is_photo_blurred: boolean;
   compatibility_score?: number;
+  id_verified?: boolean;
+  selfie_verified?: boolean;
+  employment_verified?: boolean;
+  family_reference_verified?: boolean;
+  trust_shield_score?: number;
+}
+
+export interface FamilyReference {
+  name: string;
+  relation: string;
+  phone: string;
+  city: string;
+  verified?: boolean;
 }
 
 export interface ProfileDetail extends ProfileCard {
@@ -47,6 +60,7 @@ export interface ProfileDetail extends ProfileCard {
   profile_completeness_pct: number;
   photo_urls: string[];
   has_contact_revealed: boolean;
+  family_references?: FamilyReference[];
 }
 
 export interface ContactStatusResponse {

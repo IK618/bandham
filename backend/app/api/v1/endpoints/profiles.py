@@ -92,7 +92,13 @@ async def get_my_profile(
                 is_searchable=False,
                 photo_urls=[],
                 is_photo_blurred=False,
-                has_contact_revealed=False
+                has_contact_revealed=False,
+                id_verified=True,
+                selfie_verified=True,
+                employment_verified=True,
+                family_reference_verified=True,
+                trust_shield_score=100,
+                family_references=[]
             )
         raise HTTPException(status_code=404, detail="Profile not found. Please complete onboarding.")
 
@@ -142,7 +148,13 @@ async def get_my_profile(
         is_searchable=profile.is_searchable,
         photo_urls=photo_urls,
         is_photo_blurred=False,
-        has_contact_revealed=True
+        has_contact_revealed=True,
+        id_verified=bool(profile.id_verified),
+        selfie_verified=bool(profile.selfie_verified),
+        employment_verified=bool(profile.employment_verified),
+        family_reference_verified=bool(profile.family_reference_verified),
+        trust_shield_score=profile.trust_shield_score or 0,
+        family_references=profile.family_references or []
     )
 
 
@@ -360,7 +372,13 @@ async def get_profile_by_id(
         photo_urls=photo_urls,
         is_photo_blurred=False,
         has_contact_revealed=has_contact_revealed,
-        compatibility_score=comp_score
+        compatibility_score=comp_score,
+        id_verified=bool(profile.id_verified),
+        selfie_verified=bool(profile.selfie_verified),
+        employment_verified=bool(profile.employment_verified),
+        family_reference_verified=bool(profile.family_reference_verified),
+        trust_shield_score=profile.trust_shield_score or 0,
+        family_references=profile.family_references or []
     )
 
 
@@ -405,9 +423,15 @@ async def search_profiles(
             )
         )
 
-    # Offset pagination
+    # Offset pagination - Trust Shield Score boosts ranking at top
     offset = (page - 1) * limit
-    query = select(Profile).where(and_(*conditions)).order_by(Profile.created_at.desc()).offset(offset).limit(limit)
+    query = (
+        select(Profile)
+        .where(and_(*conditions))
+        .order_by(Profile.trust_shield_score.desc(), Profile.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
     profiles = (await db.execute(query)).scalars().all()
 
     # User's preferences for calculating match scores if logged in
@@ -446,7 +470,12 @@ async def search_profiles(
                 bio_narrative=((p.bio_narrative or "")[:160] + "...") if len(p.bio_narrative or "") > 160 else (p.bio_narrative or ""),
                 thumbnail_url=f"photos/user_{str(p.user_id)[:8]}_thumb.webp",
                 is_photo_blurred=False,
-                compatibility_score=score
+                compatibility_score=score,
+                id_verified=bool(p.id_verified),
+                selfie_verified=bool(p.selfie_verified),
+                employment_verified=bool(p.employment_verified),
+                family_reference_verified=bool(p.family_reference_verified),
+                trust_shield_score=p.trust_shield_score or 0
             )
         )
 

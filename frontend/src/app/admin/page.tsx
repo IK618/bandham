@@ -55,6 +55,18 @@ interface AdminUser {
   profile_id_display?: string;
   gender?: string;
   city?: string;
+  id_verified?: boolean;
+  selfie_verified?: boolean;
+  employment_verified?: boolean;
+  family_reference_verified?: boolean;
+  trust_shield_score?: number;
+  family_references?: {
+    name: string;
+    relation: string;
+    phone: string;
+    city: string;
+    verified?: boolean;
+  }[];
 }
 
 export default function AdminDashboardPage() {
@@ -198,6 +210,45 @@ export default function AdminDashboardPage() {
       setActionNotice({
         type: "error",
         text: err.message || `Failed to decline proposal for ${memberEmail}.`
+      });
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  // Toggle Member Trust Shield Badges (+25% per badge)
+  const handleToggleTrustBadge = async (
+    userId: string,
+    badgeKey: "id_verified" | "selfie_verified" | "employment_verified" | "family_reference_verified",
+    currentVal: boolean
+  ) => {
+    setActionInProgress(userId);
+    setActionNotice(null);
+    try {
+      const res = await apiClient<any>(`/admin/users/${userId}/trust-badge`, {
+        method: "PATCH",
+        body: JSON.stringify({ [badgeKey]: !currentVal }),
+      });
+      setActionNotice({
+        type: "success",
+        text: res?.message || `Trust badge ${badgeKey} updated!`,
+      });
+      const updater = (prev: AdminUser[]) =>
+        prev.map((u) =>
+          u.id === userId
+            ? {
+                ...u,
+                [badgeKey]: !currentVal,
+                trust_shield_score: res.trust_shield_score,
+              }
+            : u
+        );
+      setUsers(updater);
+      setProposals(updater);
+    } catch (err: any) {
+      setActionNotice({
+        type: "error",
+        text: err.message || "Failed to update trust badge.",
       });
     } finally {
       setActionInProgress(null);
@@ -506,12 +557,98 @@ export default function AdminDashboardPage() {
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
                           {prop.status}
                         </span>
+
+                        {/* Trust Shield Score Indicator */}
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                          (prop.trust_shield_score ?? 0) === 100
+                            ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                            : (prop.trust_shield_score ?? 0) >= 50
+                            ? "bg-teal-50 text-teal-800 border border-teal-200"
+                            : "bg-gray-100 text-gray-600"
+                        }`}>
+                          <Shield className="w-3 h-3 text-emerald-600" />
+                          🛡️ {prop.trust_shield_score ?? 0}% Trust Shield
+                        </span>
                       </div>
                       <div className="text-xs text-gray-600 flex flex-wrap gap-x-4 gap-y-1">
                         <span>Email: <strong className="text-gray-900">{prop.email}</strong></span>
                         <span>Phone: <strong className="text-gray-900 tabular-nums">{prop.phone_number}</strong></span>
                         {prop.city && <span>Location: <strong className="text-gray-900">{prop.city}</strong></span>}
                       </div>
+
+                      {/* Trust Shield 4-Pillar Verification Toggles */}
+                      <div className="flex items-center gap-1.5 pt-1 text-[10px]">
+                        <span className="text-gray-400 font-semibold mr-1">Trust Badges:</span>
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() => handleToggleTrustBadge(prop.id, "id_verified", !!prop.id_verified)}
+                          className={`px-2 py-0.5 rounded-md border font-medium transition-colors ${
+                            prop.id_verified
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                              : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
+                          }`}
+                          title="Click to toggle Govt ID verification"
+                        >
+                          🪪 Govt ID {prop.id_verified ? "✓" : "—"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() => handleToggleTrustBadge(prop.id, "selfie_verified", !!prop.selfie_verified)}
+                          className={`px-2 py-0.5 rounded-md border font-medium transition-colors ${
+                            prop.selfie_verified
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                              : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
+                          }`}
+                          title="Click to toggle Selfie Liveness verification"
+                        >
+                          🤳 Selfie {prop.selfie_verified ? "✓" : "—"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() => handleToggleTrustBadge(prop.id, "employment_verified", !!prop.employment_verified)}
+                          className={`px-2 py-0.5 rounded-md border font-medium transition-colors ${
+                            prop.employment_verified
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                              : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
+                          }`}
+                          title="Click to toggle Employment verification"
+                        >
+                          💼 Job {prop.employment_verified ? "✓" : "—"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() => handleToggleTrustBadge(prop.id, "family_reference_verified", !!prop.family_reference_verified)}
+                          className={`px-2 py-0.5 rounded-md border font-medium transition-colors ${
+                            prop.family_reference_verified
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                              : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
+                          }`}
+                          title="Click to toggle Mutual Family Reference verification"
+                        >
+                          👨‍👩‍👧 Family {prop.family_reference_verified ? "✓" : "—"}
+                        </button>
+                      </div>
+
+                      {/* Display Submitted Family References if Present */}
+                      {prop.family_references && prop.family_references.length > 0 && (
+                        <div className="mt-1 p-2 bg-emerald-50/70 rounded-xl border border-emerald-100 text-[11px] text-emerald-950">
+                          <strong className="block text-[10px] uppercase font-bold text-emerald-900">
+                            👨‍👩‍👧‍👦 Submitted Family Contacts on File:
+                          </strong>
+                          <ul className="list-disc list-inside mt-0.5 space-y-0.5">
+                            {prop.family_references.map((r, i) => (
+                              <li key={i}>
+                                {r.name} ({r.relation}, {r.city}) — Phone: {r.phone}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
                       <p className="text-[11px] text-gray-400">
                         Submitted: {new Date(prop.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                       </p>
@@ -610,6 +747,7 @@ export default function AdminDashboardPage() {
                     <th className="pb-3 font-semibold">Candidate</th>
                     <th className="pb-3 font-semibold">Contact Credentials</th>
                     <th className="pb-3 font-semibold">Position / Role</th>
+                    <th className="pb-3 font-semibold">Trust Shield</th>
                     <th className="pb-3 font-semibold">Account Status</th>
                     <th className="pb-3 font-semibold text-right">Disciplinary Actions</th>
                   </tr>
@@ -684,6 +822,78 @@ export default function AdminDashboardPage() {
                               <option value="MODERATOR">Moderator</option>
                               <option value="ADMIN">Administrator</option>
                             </select>
+                          </div>
+                        </td>
+
+                        {/* Trust Shield 4-Pillar Score & Badges */}
+                        <td className="py-3.5 pr-3">
+                          <div className="flex flex-col gap-1">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${
+                                (u.trust_shield_score ?? 0) === 100
+                                  ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                                  : (u.trust_shield_score ?? 0) >= 50
+                                  ? "bg-teal-50 text-teal-800 border border-teal-200"
+                                  : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              <Shield className="w-3 h-3 text-emerald-600" />
+                              🛡️ {u.trust_shield_score ?? 0}% Shield
+                            </span>
+                            <div className="flex items-center gap-1 text-[9px]">
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => handleToggleTrustBadge(u.id, "id_verified", !!u.id_verified)}
+                                className={`px-1.5 py-0.2 rounded border transition-colors ${
+                                  u.id_verified
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                                    : "bg-white text-gray-400 border-gray-200 line-through hover:border-gray-300"
+                                }`}
+                                title="Click to toggle Govt ID badge"
+                              >
+                                🪪 ID
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => handleToggleTrustBadge(u.id, "selfie_verified", !!u.selfie_verified)}
+                                className={`px-1.5 py-0.2 rounded border transition-colors ${
+                                  u.selfie_verified
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                                    : "bg-white text-gray-400 border-gray-200 line-through hover:border-gray-300"
+                                }`}
+                                title="Click to toggle Selfie badge"
+                              >
+                                🤳 Selfie
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => handleToggleTrustBadge(u.id, "employment_verified", !!u.employment_verified)}
+                                className={`px-1.5 py-0.2 rounded border transition-colors ${
+                                  u.employment_verified
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                                    : "bg-white text-gray-400 border-gray-200 line-through hover:border-gray-300"
+                                }`}
+                                title="Click to toggle Employment badge"
+                              >
+                                💼 Job
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => handleToggleTrustBadge(u.id, "family_reference_verified", !!u.family_reference_verified)}
+                                className={`px-1.5 py-0.2 rounded border transition-colors ${
+                                  u.family_reference_verified
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold"
+                                    : "bg-white text-gray-400 border-gray-200 line-through hover:border-gray-300"
+                                }`}
+                                title="Click to toggle Family References badge"
+                              >
+                                👨‍👩‍👧 Family
+                              </button>
+                            </div>
                           </div>
                         </td>
 
