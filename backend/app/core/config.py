@@ -37,27 +37,22 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "bandhan_db"
 
-    @property
-    def DATABASE_URL_ASYNC(self) -> str:
+    def _build_db_url(self, protocol: str) -> str:
         if self.DATABASE_URL:
             raw = self.DATABASE_URL.strip()
-            if raw.startswith("postgres://"):
-                return raw.replace("postgres://", "postgresql+asyncpg://", 1)
-            elif raw.startswith("postgresql://"):
-                return raw.replace("postgresql://", "postgresql+asyncpg://", 1)
+            for prefix in ("postgres://", "postgresql://", "postgresql+asyncpg://"):
+                if raw.startswith(prefix):
+                    return raw.replace(prefix, f"{protocol}://", 1)
             return raw
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return f"{protocol}://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def DATABASE_URL_ASYNC(self) -> str:
+        return self._build_db_url("postgresql+asyncpg")
 
     @property
     def DATABASE_URL_SYNC(self) -> str:
-        if self.DATABASE_URL:
-            raw = self.DATABASE_URL.strip()
-            if raw.startswith("postgres://"):
-                return raw.replace("postgres://", "postgresql://", 1)
-            elif raw.startswith("postgresql+asyncpg://"):
-                return raw.replace("postgresql+asyncpg://", "postgresql://", 1)
-            return raw
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return self._build_db_url("postgresql")
 
     # Redis URL (Railway / Upstash REDIS_URL takes priority)
     REDIS_URL_ENV: Optional[str] = Field(None, validation_alias="REDIS_URL")

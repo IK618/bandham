@@ -6,7 +6,7 @@ and control what fields can be publicly viewed versus redacted for strangers.
 
 from datetime import date
 from typing import List, Optional
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 import re
 from backend.app.models.profile import (
     CreatedByEnum,
@@ -226,4 +226,5 @@ class PartnerPreferenceUpdate(BaseModel):
 class PartnerPreferenceResponse(PartnerPreferenceBase):
     id: str
     user_id: str
+    model_config = ConfigDict(from_attributes=True)
 

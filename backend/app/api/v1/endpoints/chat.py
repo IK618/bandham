@@ -15,7 +15,7 @@ from backend.app.api.deps import get_current_user, get_db
 from backend.app.models.user import User
 from backend.app.models.profile import Profile
 from backend.app.models.chat import Conversation, ConversationParticipant, Message, MessageStatusEnum
-from backend.app.schemas.chat import ConversationResponse, MessageCreate, MessageResponse
+from backend.app.schemas.interaction import ConversationResponse, MessageCreate, MessageResponse
 from backend.app.api.v1.endpoints.interests import profile_to_card
 
 router = APIRouter(prefix="/chat", tags=["Real-Time Chat & Messaging"])

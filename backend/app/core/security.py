@@ -28,39 +28,29 @@ def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8")[:72], salt).decode("utf-8")
 
 
-def create_access_token(subject: str, role: str, expires_delta: Optional[timedelta] = None) -> str:
-    """Creates a signed JWT access token carrying the user ID and role."""
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        
+def _build_jwt(subject: str, token_type: str, delta: timedelta, role: Optional[str] = None) -> str:
+    """Builds and signs a JWT with unified claims."""
     to_encode: Dict[str, Any] = {
         "sub": str(subject),
-        "role": str(role),
-        "exp": expire,
-        "type": "access",
+        "exp": datetime.now(timezone.utc) + delta,
+        "type": token_type,
         "iat": datetime.now(timezone.utc),
     }
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    if role:
+        to_encode["role"] = str(role)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def create_access_token(subject: str, role: str, expires_delta: Optional[timedelta] = None) -> str:
+    """Creates a signed JWT access token carrying the user ID and role."""
+    delta = expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    return _build_jwt(subject, "access", delta, role=role)
 
 
 def create_refresh_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
     """Creates a signed long-lived JWT refresh token."""
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-        
-    to_encode: Dict[str, Any] = {
-        "sub": str(subject),
-        "exp": expire,
-        "type": "refresh",
-        "iat": datetime.now(timezone.utc),
-    }
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    delta = expires_delta or timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    return _build_jwt(subject, "refresh", delta)
 
 
 def decode_token(token: str) -> Dict[str, Any]:

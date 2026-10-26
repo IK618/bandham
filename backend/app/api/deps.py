@@ -51,16 +51,15 @@ async def get_token_from_header_or_cookie(
     authorization: Optional[str] = Header(None),
     access_token: Optional[str] = Cookie(None)
 ) -> str:
-    """Extracts the Bearer token from the Authorization header or HttpOnly access_token cookie."""
-    if authorization and authorization.startswith("Bearer "):
-        return authorization.split(" ")[1]
-    if access_token:
-        return access_token
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required. Please provide a valid session token.",
-        headers={"WWW-Authenticate": "Bearer"}
-    )
+    """Extracts the Bearer token or HttpOnly cookie, raising 401 if missing."""
+    token = await get_optional_token(authorization, access_token)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Please provide a valid session token.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    return token
 
 
 async def get_current_user(

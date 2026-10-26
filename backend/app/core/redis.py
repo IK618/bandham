@@ -32,27 +32,24 @@ async def close_redis_connection() -> None:
         redis_client = None
 
 
+async def check_daily_limit(key: str, max_requests: int) -> bool:
+    """Returns True if request is allowed within 24h window, False if limit exceeded."""
+    try:
+        client = await get_redis_client()
+        current_count = await client.get(key)
+        if current_count is not None and int(current_count) >= max_requests:
+            return False
+
+        pipe = client.pipeline()
+        pipe.incr(key)
+        if current_count is None:
+            pipe.expire(key, 86400)
+        await pipe.execute()
+        return True
+    except Exception:
+        return True
+
+
 class RateLimiter:
     """Sliding window / daily counter rate limiter using Redis."""
-
-    @staticmethod
-    async def check_daily_limit(key: str, max_requests: int) -> bool:
-        """
-        Returns True if request is allowed within the 24-hour window, False if limit exceeded.
-        """
-        try:
-            client = await get_redis_client()
-            current_count = await client.get(key)
-            if current_count is not None and int(current_count) >= max_requests:
-                return False
-            
-            # Increment and set 24h expiration on initial write
-            pipe = client.pipeline()
-            pipe.incr(key)
-            if current_count is None:
-                pipe.expire(key, 86400)  # 24 hours
-            await pipe.execute()
-            return True
-        except Exception:
-            # Graceful fallback: If Redis is offline during dev/test, permit the request
-            return True
+    check_daily_limit = staticmethod(check_daily_limit)

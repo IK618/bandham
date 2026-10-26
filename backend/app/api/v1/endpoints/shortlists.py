@@ -26,23 +26,24 @@ async def get_my_shortlist(
     db: AsyncSession = Depends(get_db)
 ):
     """Retrieves all bookmarked candidate profiles saved by the user."""
-    query = select(Shortlist).where(Shortlist.user_id == current_user.id).order_by(Shortlist.created_at.desc())
-    items = (await db.execute(query)).scalars().all()
-
-    responses: List[ShortlistResponse] = []
-    for it in items:
-        prof = (await db.execute(select(Profile).where(Profile.user_id == it.shortlisted_user_id))).scalars().first()
-        responses.append(
-            ShortlistResponse(
-                id=str(it.id),
-                user_id=str(it.user_id),
-                shortlisted_user_id=str(it.shortlisted_user_id),
-                notes=it.notes,
-                created_at=it.created_at,
-                shortlisted_profile=profile_to_card(prof) if prof else None
-            )
+    query = (
+        select(Shortlist, Profile)
+        .outerjoin(Profile, Profile.user_id == Shortlist.shortlisted_user_id)
+        .where(Shortlist.user_id == current_user.id)
+        .order_by(Shortlist.created_at.desc())
+    )
+    rows = (await db.execute(query)).all()
+    return [
+        ShortlistResponse(
+            id=str(it.id),
+            user_id=str(it.user_id),
+            shortlisted_user_id=str(it.shortlisted_user_id),
+            notes=it.notes,
+            created_at=it.created_at,
+            shortlisted_profile=profile_to_card(prof) if prof else None,
         )
-    return responses
+        for it, prof in rows
+    ]
 
 
 @router.post("", response_model=ShortlistResponse, status_code=status.HTTP_201_CREATED)

@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.models.user import User
 from backend.app.models.preference import PartnerPreference
-from backend.app.schemas.preference import (
+from backend.app.schemas.profile import (
     PartnerPreferenceCreate,
     PartnerPreferenceResponse,
     PartnerPreferenceUpdate,
@@ -49,25 +49,7 @@ async def get_my_preferences(
         await db.commit()
         await db.refresh(pref)
 
-    return PartnerPreferenceResponse(
-        id=str(pref.id),
-        user_id=str(pref.user_id),
-        min_age=pref.min_age,
-        max_age=pref.max_age,
-        min_height_cm=pref.min_height_cm,
-        max_height_cm=pref.max_height_cm,
-        acceptable_marital_statuses=pref.acceptable_marital_statuses,
-        acceptable_religions=pref.acceptable_religions,
-        acceptable_communities=pref.acceptable_communities,
-        acceptable_mother_tongues=pref.acceptable_mother_tongues,
-        acceptable_countries=pref.acceptable_countries,
-        acceptable_cities=pref.acceptable_cities,
-        min_education_level=pref.min_education_level,
-        acceptable_employment_sectors=pref.acceptable_employment_sectors,
-        min_income_bracket=pref.min_income_bracket,
-        acceptable_diets=pref.acceptable_diets,
-        manglik_preference=pref.manglik_preference
-    )
+    return PartnerPreferenceResponse.model_validate(pref)
 
 
 @router.put("/me", response_model=PartnerPreferenceResponse)
