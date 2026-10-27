@@ -5,7 +5,7 @@ and JWT signing engines—the exact network hosts, ports, and security secrets t
 """
 
 from typing import List, Optional
-from pydantic import Field
+from pydantic import Field, field_validator, ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +22,18 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     COOKIE_SAMESITE: str = "lax"
     COOKIE_SECURE: Optional[bool] = None
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v: str, info: ValidationInfo) -> str:
+        env = str(info.data.get("ENVIRONMENT", "development")).lower()
+        if env in ("production", "prod", "staging"):
+            if "development" in v.lower() or len(v) < 32:
+                raise ValueError(
+                    "CRITICAL SECURITY CONFIGURATION: In production/staging environments, SECRET_KEY "
+                    "must be configured via environment variable with a strong secret of at least 32 characters."
+                )
+        return v
 
     @property
     def IS_COOKIE_SECURE(self) -> bool:

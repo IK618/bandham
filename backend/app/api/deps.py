@@ -35,6 +35,8 @@ async def get_optional_current_user(
         return None
     try:
         payload = decode_token(token)
+        if payload.get("type") != "access":
+            return None
         user_id_str: str = payload.get("sub")
         if not user_id_str:
             return None
@@ -69,10 +71,19 @@ async def get_current_user(
     """Decodes the JWT token and fetches the current active user from the database."""
     try:
         payload = decode_token(token)
+        # Defense against token confusion: strictly enforce access token type
+        if payload.get("type") != "access":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type: session requires an access token.",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
         user_id_str: str = payload.get("sub")
         if not user_id_str:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject.")
         user_uuid = uuid.UUID(user_id_str)
+    except HTTPException:
+        raise
     except (ValueError, KeyError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired or invalid token.")
 

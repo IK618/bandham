@@ -75,3 +75,7 @@ class UserResponse(BaseModel):
     status: UserStatus
     email_verified: bool
     phone_verified: bool
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: Optional[str] = None

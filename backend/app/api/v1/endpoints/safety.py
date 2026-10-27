@@ -387,6 +387,9 @@ async def submit_selfie_liveness_check(
     if not payload.liveness_confirmed:
         raise HTTPException(status_code=400, detail="Selfie liveness check failed. Please look straight and blink.")
 
+    if not payload.selfie_image_url or not (payload.selfie_image_url.startswith("data:image/") or payload.selfie_image_url.startswith("https://")):
+        raise HTTPException(status_code=400, detail="Invalid selfie capture: live image frame data required.")
+
     # Save and keep the captured selfie as the active profile picture
     if payload.selfie_image_url and payload.selfie_image_url.strip():
         existing_photos = (await db.execute(select(Photo).where(Photo.user_id == current_user.id))).scalars().all()

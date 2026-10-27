@@ -337,15 +337,9 @@ async def upload_profile_photo(
     )
     db.add(new_photo)
 
-    # If captured through camera selfie liveness check, grant verified badge
-    if payload.is_selfie:
-        profile.selfie_verified = True
-        profile.trust_shield_score = (
-            (1 if profile.id_verified else 0) +
-            (1 if profile.selfie_verified else 0) +
-            (1 if profile.employment_verified else 0) +
-            (1 if profile.family_reference_verified else 0)
-        ) * 25
+    # Note: selfie_verified and Trust Shield score boosts are strictly governed by the
+    # dedicated biometric safety verification workflow (/safety/verify-selfie-liveness).
+    # Uploading or editing a photo from file/gallery updates the avatar without auto-awarding verification.
 
     await db.commit()
     await db.refresh(profile)

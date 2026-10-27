@@ -5,18 +5,20 @@ It registers new applicants, verifies phone credentials via OTP, and hands over 
 
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from typing import Optional
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.deps import get_current_user, get_db
 from backend.app.core.config import settings
-from backend.app.core.security import create_access_token, create_refresh_token, get_password_hash, verify_password
+from backend.app.core.security import create_access_token, create_refresh_token, decode_token, get_password_hash, verify_password
 from backend.app.models.user import User, UserRole, UserStatus
 from backend.app.models.profile import Profile, GenderEnum, MaritalStatusEnum
 from backend.app.models.preference import PartnerPreference
 from backend.app.schemas.auth import (
     LoginRequest,
+    RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
     UserResponse,
@@ -241,6 +243,84 @@ async def login(
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
+        user_id=str(user.id),
+        role=user.role,
+        status=user.status,
+        email=user.email,
+        profile_id_display=prof.profile_id_display if prof else None
+    )
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_session_token(
+    response: Response,
+    payload: Optional[RefreshTokenRequest] = None,
+    refresh_token_cookie: Optional[str] = Cookie(None, alias="refresh_token"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Exchanges a valid refresh token for a fresh access token."""
+    token = None
+    if payload and payload.refresh_token:
+        token = payload.refresh_token.strip()
+    elif refresh_token_cookie:
+        token = refresh_token_cookie.strip()
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token required.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    try:
+        token_data = decode_token(token)
+        if token_data.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type: refresh token expected.",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        user_id_str = token_data.get("sub")
+        if not user_id_str:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject.")
+        user_uuid = uuid.UUID(user_id_str)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Expired or invalid refresh token.")
+
+    user = (await db.execute(select(User).where(User.id == user_uuid))).scalars().first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User account no longer exists.")
+
+    if user.status in [UserStatus.SUSPENDED, UserStatus.BANNED]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Account is {user.status.value}.")
+
+    access_token = create_access_token(subject=str(user.id), role=user.role.value)
+    new_refresh_token = create_refresh_token(subject=str(user.id))
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        samesite=settings.COOKIE_SAMESITE,
+        secure=settings.IS_COOKIE_SECURE,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        samesite=settings.COOKIE_SAMESITE,
+        secure=settings.IS_COOKIE_SECURE,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400
+    )
+
+    prof = (await db.execute(select(Profile).where(Profile.user_id == user.id))).scalars().first()
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=new_refresh_token,
         user_id=str(user.id),
         role=user.role,
         status=user.status,
