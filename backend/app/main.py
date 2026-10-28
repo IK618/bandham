@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from backend.app.api.v1.router import api_router
 from backend.app.core.config import settings
 from backend.app.core.redis import close_redis_connection
+from backend.app.core.middleware import RateLimitAndBotProtectionMiddleware
 
 
 @asynccontextmanager
@@ -42,6 +43,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mandatory Rate Limiting and Bot Abuse Mitigation Middleware
+app.add_middleware(RateLimitAndBotProtectionMiddleware)
 
 # Mount API v1 router
 app.include_router(api_router, prefix=settings.API_V1_STR)
