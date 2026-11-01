@@ -5,7 +5,7 @@ Bandham is an original, complete, end-to-end matrimonial platform built with a h
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: Next.js 15 (App Router, React 19, TypeScript), Tailwind CSS, React Hook Form, Zod, Lucide Icons, TanStack Query.
 - **Backend**: Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy 2.0 (Async), Alembic migrations.
@@ -16,7 +16,7 @@ Bandham is an original, complete, end-to-end matrimonial platform built with a h
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 bandhanmatrimony/
@@ -58,7 +58,7 @@ bandhanmatrimony/
 
 ---
 
-## ⚡ Quickstart
+## Quickstart
 
 ### 1. Run Everything with Docker Compose
 The fastest way to boot the complete environment (PostgreSQL, Redis, MinIO, FastAPI Backend, and Next.js Frontend):
@@ -98,7 +98,7 @@ npm run dev
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 ```bash
 # 1. Run Backend Matching Engine Calibration Tests
@@ -116,7 +116,7 @@ npx playwright test tests/e2e
 
 ---
 
-## 🔑 Pre-Seeded Evaluation Accounts
+## Pre-Seeded Evaluation Accounts
 
 | Role | Email | OTP Code | Description |
 | :--- | :--- | :--- | :--- |
@@ -126,7 +126,7 @@ npx playwright test tests/e2e
 
 ---
 
-## 🛡️ Security & Privacy Features
+## Security & Privacy Features
 
 - **Asymmetric Communication**: Free members can send interests; contact details (phone, email) are gated behind subscription credits.
 - **PII Scrubbing**: Freeform bio text is automatically sanitized at API boundaries with regular expression scrubbers to prevent phone/email leaks.
@@ -135,5 +135,5 @@ npx playwright test tests/e2e
 
 ---
 
-## 📄 License
+## License
 Internal Development / Proprietary - Bandham Platform.
