@@ -9,7 +9,7 @@
 ```
 Bandham Matrimonial Platform
 │
-├── 🌐 Public / Guest Routes
+├──  Public / Guest Routes
 │   ├── / .................................... Public Landing Page (Hero, Value Props, Search Widget, Stories)
 │   ├── /about ............................... Mission, Vision, and Trust Manifesto
 │   ├── /safety-guidelines ................... Dating/Matrimony Safety Tips, Scam Alerts & Reporting Guidelines
@@ -19,7 +19,7 @@ Bandham Matrimonial Platform
 │   ├── /terms ............................... Terms of Service, Legal Declarations, Age Criteria
 │   └── /privacy ............................. Privacy Policy, DPDP/GDPR Data Protection Notice
 │
-├── 🔐 Authentication & Onboarding Routes
+├──  Authentication & Onboarding Routes
 │   ├── /login ............................... Unified Phone/Email Login with Password or OTP
 │   ├── /register ............................ Initial Registration Form ("Profile Created For", Credentials)
 │   ├── /verify-otp .......................... 6-Digit SMS/Email OTP Verification Screen
@@ -33,7 +33,7 @@ Bandham Matrimonial Platform
 │       ├── /onboarding/step-6 ............... Photo Gallery Upload & Privacy Preference
 │       └── /onboarding/step-7 ............... Partner Preference Configuration (Age, Height, Caste, Location)
 │
-├── 👤 Authenticated Member Workspace (Requires Auth Cookie + Completed Profile)
+├──  Authenticated Member Workspace (Requires Auth Cookie + Completed Profile)
 │   ├── /dashboard ........................... Activity Center: New Matches, Incoming Interests, Profile Views
 │   ├── /matches
 │       ├── /matches/daily ................... Curated "Today's Top 20 Matches"
@@ -78,7 +78,7 @@ Bandham Matrimonial Platform
 │       ├── /settings/blocked-users .......... Blocked Profiles Management List
 │       └── /settings/data-privacy ........... Export My Data (JSON) & Request Account Deletion
 │
-└── 🛡️ Moderation & Administrative Portal (Role: ADMIN / MODERATOR)
+└──  Moderation & Administrative Portal (Role: ADMIN / MODERATOR)
     ├── /admin/login ......................... Multi-Factor Administrative Access
     ├── /admin/dashboard ..................... Metrics: Active Members, Revenue, Verification Queues
     ├── /admin/users ......................... User Management, Audit Logs, Suspension Controls
@@ -101,8 +101,8 @@ Bandham Matrimonial Platform
   - Primary Nav Tabs: `My Dashboard`, `Matches` (with badge counter), `Search`, `Inbox` (with unread counter), `Chat` (WebSocket online pill)
   - Quick Search Bar: By Profile ID
   - Utility Icons:
-    - 🔔 Notifications Popover (Interests received, Profile views, Contact reveals)
-    - 💬 Messages Dropdown (Latest active threads)
+    -  Notifications Popover (Interests received, Profile views, Contact reveals)
+    -  Messages Dropdown (Latest active threads)
   - User Avatar Menu:
     - User Name + Profile ID badge
     - Profile Completeness Indicator (e.g., "78% Complete - Add Horoscope to reach 90%")
@@ -128,20 +128,20 @@ Bandham Matrimonial Platform
 |                                          |                                        |
 |  [Key Action Panel]                      |  [COMPATIBILITY MATCH SCORE: 92%]      |
 |  +------------------------------------+  |  Match Breakdown:                      |
-|  | [❤️ Send Interest]                  |  |  Age [✓] | Religion [✓] | Diet [✓]    |
-|  | [⭐ Add to Shortlist]               |  |  Height [✓] | Education [✓]           |
-|  | [📞 View Contact Number] (Locked)  |  +----------------------------------------+
-|  | [💬 Chat Now] (Requires Accept)    |  | ABOUT HER                              |
+|  | [ Send Interest]                  |  |  Age [] | Religion [] | Diet []    |
+|  | [ Add to Shortlist]               |  |  Height [] | Education []           |
+|  | [ View Contact Number] (Locked)  |  +----------------------------------------+
+|  | [ Chat Now] (Requires Accept)    |  | ABOUT HER                              |
 |  +------------------------------------+  |  Detailed narrative written by self... |
 |                                          +----------------------------------------+
 |  [Trust & Verification Card]             | CAREER & EDUCATION                     |
-|  - [✓] Government ID Verified            | - Degree: M.Tech in Computer Science   |
-|  - [✓] Phone Verified                    | - College: National Institute of Tech  |
-|  - [✓] Selfie Photo Verified             | - Income Bracket: INR 25-35 LPA        |
+|  - [] Government ID Verified            | - Degree: M.Tech in Computer Science   |
+|  - [] Phone Verified                    | - College: National Institute of Tech  |
+|  - [] Selfie Photo Verified             | - Income Bracket: INR 25-35 LPA        |
 |                                          +----------------------------------------+
 |  [Safety Actions]                        | FAMILY DETAILS                         |
-|  - [🚩 Report Profile]                   | - Family Type: Nuclear                 |
-|  - [🚫 Block Member]                     | - Father: Retired Central Govt Officer |
+|  - [ Report Profile]                   | - Family Type: Nuclear                 |
+|  - [ Block Member]                     | - Father: Retired Central Govt Officer |
 |                                          | - Siblings: 1 Younger Brother (Unm.)   |
 |                                          +----------------------------------------+
 |                                          | LIFESTYLE & ASTROLOGY                  |
@@ -167,12 +167,12 @@ Bandham Matrimonial Platform
 |  CARD 1: ROHAN M. (BDN-34901) - Received Yesterday                               |
 |  [Photo]  29 Yrs, 5'11", Product Manager, Mumbai                                  |
 |           "Hi Ananya, I found your profile very aligned with my values..."        |
-|           [✓ ACCEPT INTEREST]      [✕ DECLINE]      [View Full Profile]           |
+|           [ ACCEPT INTEREST]      [ DECLINE]      [View Full Profile]           |
 +-----------------------------------------------------------------------------------+
 |  CARD 2: VIKRAM K. (BDN-51204) - Received 3 days ago                              |
 |  [Photo]  31 Yrs, 6'0", Doctor / Surgeon, Delhi                                   |
 |           "Expressed interest in your profile."                                   |
-|           [✓ ACCEPT INTEREST]      [✕ DECLINE]      [View Full Profile]           |
+|           [ ACCEPT INTEREST]      [ DECLINE]      [View Full Profile]           |
 +-----------------------------------------------------------------------------------+
 ```
 

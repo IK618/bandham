@@ -4,7 +4,7 @@ This document outlines the complete folder structure and file-by-file organizati
 
 ---
 
-## 🏗️ Top-Level Overview
+##  Top-Level Overview
 
 ```text
 bandhanmatrimony/
@@ -19,7 +19,7 @@ bandhanmatrimony/
 
 ---
 
-## 1. ⚙️ Root Configuration & Orchestration
+## 1.  Root Configuration & Orchestration
 
 | File / Folder | Purpose & Responsibility |
 | :--- | :--- |
@@ -31,7 +31,7 @@ bandhanmatrimony/
 
 ---
 
-## 2. 🐍 Backend Directory (`backend/`)
+## 2.  Backend Directory (`backend/`)
 
 The backend is built with **Python 3.11+**, **FastAPI**, **SQLAlchemy 2.0 (Async)**, and **PostgreSQL 16**.
 
@@ -100,7 +100,7 @@ Consolidated into 5 core, cohesive domain modules (with backward-compatible re-e
 
 ---
 
-## 3. 🌐 Frontend Directory (`frontend/`)
+## 3.  Frontend Directory (`frontend/`)
 
 Built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, and **Tailwind CSS**.
 
@@ -152,7 +152,7 @@ Built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, and **Tail
 
 ---
 
-## 4. 📚 Documentation Directory (`docs/`)
+## 4.  Documentation Directory (`docs/`)
 
 The `docs/` folder contains the clean-room architectural specifications and design artifacts:
 
@@ -180,18 +180,18 @@ docs/
 
 ---
 
-## 5. 🧪 End-to-End Tests (`tests/`)
+## 5.  End-to-End Tests (`tests/`)
 
 - `tests/e2e/matrimonial_flow.spec.ts`: End-to-end browser tests using Playwright. Covers the complete user lifecycle: candidate registration -> profile completion -> suitor search -> interest proposal -> acceptance -> two-party contact reveal credit check.
 
 ---
 
-## 🔄 How the Components Connect
+##  How the Components Connect
 
 ```mermaid
 flowchart TD
-    User["🌐 User / Web Browser"]
-    Admin["🛡️ Admin / Moderator"]
+    User[" User / Web Browser"]
+    Admin[" Admin / Moderator"]
 
     subgraph Frontend ["Frontend (Next.js 15 — Port 3000)"]
         UI["UI Pages (/dashboard, /search, /chat, /admin)"]

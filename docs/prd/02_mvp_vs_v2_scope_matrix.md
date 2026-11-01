@@ -9,9 +9,9 @@
 ```
 Total Identified Feature Universe: 48 Distinct Modules
 │
-├── 🚀 MVP (v1.0) ................... 22 Features (Core Marriage Loop & Safety Baseline)
-├── 📈 v2.0 Release ................. 16 Features (Growth, Engagement & Advanced Privacy)
-└── 🔮 Later / Backlog .............. 10 Features (AI Matchmaker, Native Apps & Complex Video)
+├──  MVP (v1.0) ................... 22 Features (Core Marriage Loop & Safety Baseline)
+├──  v2.0 Release ................. 16 Features (Growth, Engagement & Advanced Privacy)
+└──  Later / Backlog .............. 10 Features (AI Matchmaker, Native Apps & Complex Video)
 ```
 
 ---
